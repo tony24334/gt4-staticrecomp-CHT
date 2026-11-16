@@ -217,6 +217,8 @@
   "setting.graphics_card.label": "Placa de vídeo",
   "setting.graphics_card.help": "A placa de vídeo que desenha o jogo. O automático escolhe a placa dedicada antes do vídeo integrado e, entre elas, a de mais memória de vídeo.",
   "choice.graphics_card.auto": "Automático (melhor)",
+  "setting.cht_video_output.label": "Saída de vídeo (CHT)",
+  "setting.cht_video_output.help": "Mantém a saída de vídeo das corridas da edição em chinês tradicional no modo selecionado sempre que você joga.",
   "setting.render_scale.label": "Escala de renderização",
   "setting.render_scale.help": "O quão nítida é a imagem. 100% a desenha pelo menos na sua resolução (definida pela opção Resolução na página Tela); 50% é mais rápido e mais suave, 200% é mais nítido e exige uma placa de vídeo bem mais rápida. O número ao lado do controle é a resolução interna resultante.",
   "setting.monitor.label": "Monitor",

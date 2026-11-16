@@ -102,11 +102,30 @@ void test_invalid_owner_is_ignored() {
   require(!force_race_480p_at_vblank(far.data(), ram_size, state), "out-of-range owner writes nothing");
 }
 
+void test_cht_video_output() {
+  constexpr std::uint32_t cht_owner_address = 0x61A42Cu;
+  constexpr std::uint32_t cht_index = owner + 0x38CB0u + 0x16C8u;
+  auto ram = make_ram(0, 0);
+  require(!hold_cht_video_output(ram.data(), ram_size, RaceVideoOutput::progressive), "CHT null owner is ignored");
+  store(ram, cht_owner_address, owner);
+  for (const char *mode : {"480p", "1080i", "normal"}) {
+    const auto output = parse_cht_video_output(mode);
+    require(hold_cht_video_output(ram.data(), ram_size, output), "CHT changes to the requested mode");
+    require(load(ram, cht_index) == static_cast<std::uint32_t>(output), "CHT writes the race display index");
+    require(!hold_cht_video_output(ram.data(), ram_size, output), "CHT leaves the selected mode alone");
+  }
+  store(ram, cht_index, 3);
+  require(!hold_cht_video_output(ram.data(), ram_size, RaceVideoOutput::normal), "CHT leaves unknown values alone");
+  store(ram, cht_owner_address, 0xFFFFFFF0u);
+  require(!hold_cht_video_output(ram.data(), ram_size, RaceVideoOutput::normal), "CHT rejects out-of-range owner");
+}
+
 } // namespace
 
 int main() {
   test_environment_parsing();
   test_address_chain();
+  test_cht_video_output();
   test_write_decision();
   test_vblank_write();
   test_1080i_is_held_at_480p();

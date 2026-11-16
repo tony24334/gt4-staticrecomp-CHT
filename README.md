@@ -48,6 +48,13 @@ disc version 1.01)** on Windows x64.
   licence car preview at 4× took 24.8 s before and 8.0 s after. Eight sampled
   frames matched and 7,474 sampled VU1 checks found zero differences.
 
+### Race video output
+
+Under **Settings > Graphics > Video output (CHT)**, choose **Normal
+(480i)**, **480p** or **1080i**. The launcher saves the choice and holds
+the game's race video option at that mode each session. Normal is the
+default. The game's menus can still use interlaced output.
+
 ### Fast-forward
 
 Set **Settings → General → Fast-forward speed** to **1×–10×** (default **2×**).

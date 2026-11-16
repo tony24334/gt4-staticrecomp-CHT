@@ -383,9 +383,9 @@ add_library(gt4_quickfix STATIC frame_skip.cpp window_mode.cpp race_display.cpp 
     flare_limits.cpp camera_360.cpp fov_adjust.cpp trigger_range.cpp)
 target_compile_options(gt4_quickfix PRIVATE "${GT4_WARNINGS}")
 # TASK-100 S7b: the v2.00 hook fixtures assert the v2.00 guest chains, but gt4_quickfix carries the active target's table
-# (Spec II in a Spec II build). A Spec II build therefore compiles a second copy of the three hook modules pinned to
+# (Spec II or CHT). These builds compile a second copy of the hook modules pinned to
 # v2.00 for the fixtures only; the game keeps the target table.
-if(GT4_TARGET STREQUAL "spec2")
+if(NOT GT4_TARGET STREQUAL "v200")
     add_library(gt4_quickfix_v200_fixture STATIC race_display.cpp race_widescreen.cpp display_aspect.cpp flare_limits.cpp camera_360.cpp
         fov_adjust.cpp trigger_range.cpp)
     target_compile_definitions(gt4_quickfix_v200_fixture PUBLIC GT4_TARGET_FIXTURE_V200)

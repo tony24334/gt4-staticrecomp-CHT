@@ -48,4 +48,8 @@ struct Force480pState {
 // is normal, updates `state` and logs the first write. Returns true when it wrote.
 bool force_race_480p_at_vblank(std::uint8_t *ram, std::uint32_t ram_size, Force480pState &state);
 
+enum class RaceVideoOutput { normal = 0, progressive = 1, hdtv = 2 };
+RaceVideoOutput parse_cht_video_output(const char *value);
+bool hold_cht_video_output(std::uint8_t *ram, std::uint32_t ram_size, RaceVideoOutput output);
+
 } // namespace gt4::display

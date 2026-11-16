@@ -80,4 +80,33 @@ bool force_race_480p_at_vblank(std::uint8_t *ram, std::uint32_t ram_size, Force4
   return true;
 }
 
+RaceVideoOutput parse_cht_video_output(const char *value) {
+  if (!value || std::strcmp(value, "normal") == 0)
+    return RaceVideoOutput::normal;
+  if (std::strcmp(value, "480p") == 0)
+    return RaceVideoOutput::progressive;
+  if (std::strcmp(value, "1080i") == 0)
+    return RaceVideoOutput::hdtv;
+  throw std::invalid_argument("GT4_CHT_VIDEO_OUTPUT must be normal, 480p or 1080i");
+}
+
+bool hold_cht_video_output(std::uint8_t *ram, std::uint32_t ram_size, RaceVideoOutput output) {
+  // SCAJ-30007 1.01: 0x432D6C publishes the owner; 0x10B8B8 passes
+  // owner + 0x38CB0 to 0x42F040, which reads the mode at +0x16C8.
+  constexpr std::uint32_t owner_address = 0x61A42C;
+  constexpr std::uint32_t mode_offset = 0x38CB0 + 0x16C8;
+  if (!word_in_ram(owner_address, ram_size))
+    return false;
+  const auto owner = read_le32(ram + owner_address);
+  const auto address = static_cast<std::uint64_t>(owner) + mode_offset;
+  if (owner == 0 || (owner & 3u) != 0 || !word_in_ram(address, ram_size))
+    return false;
+  const auto current = read_le32(ram + address);
+  const auto requested = static_cast<std::uint32_t>(output);
+  if (current > static_cast<std::uint32_t>(RaceVideoOutput::hdtv) || current == requested)
+    return false;
+  write_le32(ram + address, requested);
+  return true;
+}
+
 } // namespace gt4::display

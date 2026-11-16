@@ -21,6 +21,23 @@ fn env_map(pairs: &[(String, String)]) -> std::collections::BTreeMap<String, Str
 }
 
 #[test]
+fn cht_video_output_reaches_the_game_and_standalone_config() {
+    use gt4l_core::config::{parse, render, ConfigFile};
+
+    let mut config = ConfigFile::default();
+    assert_eq!(config.settings.get("cht_video_output"), "normal");
+    for mode in ["normal", "480p", "1080i"] {
+        config.settings.set_by_user("cht_video_output", mode).unwrap();
+        let (persisted, warnings) = parse(&render(&config)).unwrap();
+        assert!(warnings.is_empty());
+        let settings = persisted.settings;
+        assert_eq!(env_map(&game_environment(&settings))["GT4_CHT_VIDEO_OUTPUT"], mode);
+        assert!(launch::standalone_config_text(&settings, None).contains(&format!("cht_video_output={mode}\n")));
+    }
+    assert!(config.settings.set_by_user("cht_video_output", "720p").is_err());
+}
+
+#[test]
 fn fast_forward_speed_reaches_the_game_and_standalone_config() {
     let mut settings = Settings::default();
     assert_eq!(env_map(&game_environment(&settings))["GT4_FAST_FORWARD_SPEED"], "2");
@@ -74,7 +91,7 @@ fn default_settings_send_the_main_profile_variables_plus_the_launcher_defaults()
     // for both of its sides).
     assert_eq!(environment["GT4_TRIGGER_FULL_RANGE"], "1");
     assert_eq!(environment["GT4_FAST_FORWARD_SPEED"], "2");
-    assert_eq!(environment.len(), 12, "the GSdx variables: renderer, process pin, config, PS2_GS and the common holds");
+    assert_eq!(environment.len(), 13, "the GSdx variables: renderer, process pin, config, PS2_GS and the common holds");
 }
 
 #[test]
@@ -593,6 +610,9 @@ fn variables_of_game_ini(text: &str) -> std::collections::BTreeMap<String, Strin
             }
             "trigger_full_range" => {
                 variables.insert("GT4_TRIGGER_FULL_RANGE".to_string(), value.to_string());
+            }
+            "cht_video_output" => {
+                variables.insert("GT4_CHT_VIDEO_OUTPUT".to_string(), value.to_string());
             }
             "fast_forward_speed" => {
                 variables.insert("GT4_FAST_FORWARD_SPEED".to_string(), value.to_string());

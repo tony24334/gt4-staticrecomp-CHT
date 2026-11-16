@@ -2074,3 +2074,6 @@ Tab now toggles the normal game speed and the launcher-selected 1x-10x
 multiplier. The audio plays faster and at higher pitch while fast-forward is
 active. The CoreGS 2.0 windowed check reached about 120 guest VBlanks/s at
 2x and returned to about 60 at 1x. See the [November 16 journal](journal/2026-11-16.md).
+
+The launcher saves a CHT race video output selection (Normal, 480p or
+1080i) and the CHT game holds it during windowed play.

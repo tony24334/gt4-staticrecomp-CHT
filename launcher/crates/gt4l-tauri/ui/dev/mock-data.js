@@ -167,6 +167,9 @@
       default: "vulkan", current: "vulkan" },
     // TASK-080 addendum: no Aspect ratio and no Internal resolution row. Render scale (50% to 200%) with the
     // resulting internal resolution as its readout (labels are filled by tableView from the chosen resolution).
+    { id: "cht_video_output", label: "Video output (CHT)", help: "Keeps the Traditional Chinese edition's in-game race video output at the selected mode each time you play.",
+      page: "basic", group: "graphics", control: "dropdown", current: "normal", default: "normal",
+      values: [{ value: "normal", label: "Normal" }, { value: "480p", label: "480p" }, { value: "1080i", label: "1080i" }] },
     { id: "render_scale", label: "Render scale", help: "How sharp the picture is drawn. 100% draws it at least at your resolution; 50% is faster and softer, 200% is sharper and needs a much faster GPU.",
       page: "basic", group: "graphics", control: "slider",
       values: { min: 50, max: 200, step: 25, unit: "%" },

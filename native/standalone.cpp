@@ -348,6 +348,8 @@ Config parse_config(std::string_view text) {
       valid = value == "0" || value == "1";
     } else if (key == "present_mode") {
       valid = value == "fifo" || value == "mailbox" || value == "immediate";
+    } else if (key == "cht_video_output") {
+      valid = value == "normal" || value == "480p" || value == "1080i";
     } else if (key == "fast_forward_speed") {
       valid = gt4::pacing::parse_fast_forward_speed(value) != 0;
     } else if (key == "pad") {
@@ -443,6 +445,7 @@ Environment config_environment(const Config &config) {  Environment out;
   if (const auto *value = get("camera_360")) out.emplace_back("GT4_CAMERA_360", *value);
   if (const auto *value = get("fov_adjust")) out.emplace_back("GT4_FOV_ADJUST", *value);
   if (const auto *value = get("trigger_full_range")) out.emplace_back("GT4_TRIGGER_FULL_RANGE", *value);
+  if (const auto *value = get("cht_video_output")) out.emplace_back("GT4_CHT_VIDEO_OUTPUT", *value);
   if (const auto *value = get("fast_forward_speed")) out.emplace_back("GT4_FAST_FORWARD_SPEED", *value);
   if (const auto *value = get("async_gs"); value && *value == "0") out.emplace_back("GT4_GS_SYNC", "1");
   if (const auto *value = get("performance_report"); value && *value == "1") out.emplace_back("GT4_PERF", "1");

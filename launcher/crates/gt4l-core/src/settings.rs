@@ -188,6 +188,20 @@ pub const SETTINGS: &[SettingDef] = &[
         connected: true,
     },
     SettingDef {
+        id: "cht_video_output",
+        page: Page::Graphics,
+        group: "Image",
+        title: "Video output (CHT)",
+        info: "Keeps the Traditional Chinese edition's in-game race video output at the selected mode each time you play.",
+        kind: Kind::Choice(&[
+            Choice { value: "normal", label: "Normal", selectable: true },
+            Choice { value: "480p", label: "480p", selectable: true },
+            Choice { value: "1080i", label: "1080i", selectable: true },
+        ]),
+        default: "normal",
+        connected: true,
+    },
+    SettingDef {
         id: "render_scale",
         page: Page::Graphics,
         group: "Image",

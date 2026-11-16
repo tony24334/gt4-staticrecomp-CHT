@@ -217,6 +217,8 @@
   "setting.graphics_card.label": "Graphics card",
   "setting.graphics_card.help": "The graphics card that draws the game. Automatic picks a dedicated card over integrated graphics, then the one with the most video memory.",
   "choice.graphics_card.auto": "Automatic (best)",
+  "setting.cht_video_output.label": "Video output (CHT)",
+  "setting.cht_video_output.help": "Keeps the Traditional Chinese edition's in-game race video output at the selected mode each time you play.",
   "setting.render_scale.label": "Render scale",
   "setting.render_scale.help": "How sharp the picture is drawn. 100% draws it at least at your resolution (taken from the Resolution setting on the Display page); 50% is faster and softer, 200% is sharper and needs a much faster GPU. The number next to the slider is the resulting internal resolution.",
   "setting.monitor.label": "Monitor",

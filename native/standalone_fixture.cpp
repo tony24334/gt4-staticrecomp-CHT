@@ -323,8 +323,11 @@ void check_renderer() {
 void check_config() {
   const sa::Config sample = sa::parse_config(read_sample("game.ini"));
   check(sample.warnings.empty(), "the launcher's sample has no warning");
-  check(sample.values.size() == 8, "eight keys in the sample");
+  check(sample.values.size() == 9, "nine keys in the sample");
   const sa::Environment environment = sa::config_environment(sample);
+  check(std::find(environment.begin(), environment.end(),
+                  std::pair<std::string, std::string>{"GT4_CHT_VIDEO_OUTPUT", "normal"}) != environment.end(),
+        "video output reaches the CHT runtime");
   check(std::find(environment.begin(), environment.end(),
                   std::pair<std::string, std::string>{"GT4_FAST_FORWARD_SPEED", "2"}) != environment.end(),
         "game.ini's fast-forward speed reaches the game");

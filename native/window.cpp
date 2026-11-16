@@ -38,6 +38,7 @@
 #include <cstring>
 #include <cwchar>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -238,6 +239,8 @@ gt4::pacing::Diagnostics pacing_diagnostics;
 gt4::pacing::Counters counters_at_last_report;
 // GT4_FORCE_480P (slice164): set at window start; counts guest VBlank writes of the race display index.
 bool force_480p_enabled = false;
+std::optional<gt4::display::RaceVideoOutput> cht_video_output;
+bool cht_video_output_written = false;
 gt4::display::Force480pState force_480p_state;
 AudioOutput *audio_output = nullptr;
 unsigned fast_forward_multiplier = gt4::pacing::default_fast_forward_speed;
@@ -686,6 +689,13 @@ void on_vblank() {
   if (!pump_messages())
     return;
   update_cursor();
+  if (cht_video_output &&
+      gt4::display::hold_cht_video_output(ps2::g_ram, ps2::kRamSize, *cht_video_output) &&
+      !cht_video_output_written) {
+    cht_video_output_written = true;
+    std::fprintf(stderr, "[display] applied CHT race video output index %u\n",
+                 static_cast<unsigned>(*cht_video_output));
+  }
   if (force_480p_enabled)
     gt4::display::force_race_480p_at_vblank(ps2::g_ram, ps2::kRamSize, force_480p_state);
 #ifdef GT4_SHAPE_CAPTURE
@@ -950,7 +960,16 @@ int run_window(const std::function<int()> &emulate) {
     game_window = nullptr;
   };
   try {
-    force_480p_enabled = gt4::display::parse_force_480p(std::getenv("GT4_FORCE_480P"));
+    cht_video_output.reset();
+    cht_video_output_written = false;
+    if (gt4::target::active().id == gt4::target::Id::cht) {
+      if (const char *output = std::getenv("GT4_CHT_VIDEO_OUTPUT")) {
+        cht_video_output = gt4::display::parse_cht_video_output(output);
+        std::fprintf(stderr, "[display] CHT race video output held at %s\n", output);
+      }
+    }
+    force_480p_enabled = gt4::target::active().id != gt4::target::Id::cht &&
+                        gt4::display::parse_force_480p(std::getenv("GT4_FORCE_480P"));
     force_480p_state = {};
     if (force_480p_enabled)
       std::fprintf(stderr, "[display] GT4_FORCE_480P=1: race display index held at 480p (guest VBlank)\n");
