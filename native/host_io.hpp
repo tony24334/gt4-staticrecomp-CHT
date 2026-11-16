@@ -110,6 +110,7 @@ public:
   // blocks while the device queue is below the latency target. Never waits.
   // Does nothing in audio mode.
   void pump();
+  void set_game_speed(unsigned speed);
   // Frames queued on the device plus the ring (paced) or pending (audio).
   std::uint64_t queued_frames();
   gt4::pacing::Mode mode() const { return mode_; }

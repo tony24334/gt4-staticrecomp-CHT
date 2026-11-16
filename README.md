@@ -25,22 +25,51 @@ No JIT, no emulator window, full speed.
 ## Traditional Chinese edition
 
 This fork of [GT4Recomp](https://github.com/moesuito/gt4-staticrecomp) adds
-experimental support for **Gran Turismo 4 Traditional Chinese (SCAJ-30007)**.
-The launcher can identify and prepare the supported disc image. The Windows
-x64 native build supports CoreGS 2.0 and the separate GSdx renderer.
+experimental support for **Gran Turismo 4 Traditional Chinese (SCAJ-30007,
+disc version 1.01)** on Windows x64.
 
-- **Release optimization.** Single-config CHT builds default to Release.
-- **Precompiled VU1.** The upstream compiler handles all 2,048 entry points
-  of the verified CHT microcode image. The same 2,400-frame CoreGS 2.0
-  headless run through the S-1 preview at 4x fell from 24.8 s to 8.0 s.
-  Eight sampled frames matched, and 7,474 VU1 checks reported zero differences.
-  Interactive frame pacing and audio still need validation.
+### Disc, launcher and renderers
 
-Use your own SCAJ-30007 ISO. Game data, generated game code, and local builds
-are kept out of this source repository. See the [native VU1 build
-recipe](docs/VU1-MICROCODE-SOURCE.md#scaj-30007-traditional-chinese) and the
-[standalone SDL2 runner](tools/cht_runner/README.md). The release badges and
-the project overview below describe upstream GT4Recomp.
+- The launcher identifies the verified SCAJ-30007 ISO, prepares its game data
+  and launches the dedicated `gt4-cht.exe` target. The CHT target has its own
+  save directory.
+- The native game supports CoreGS 2.0 and the separate GSdx renderer. The
+  [standalone SDL2 runner](tools/cht_runner/README.md) is also available for
+  development and uses the donor software renderer.
+
+### Performance
+
+- Single-config CHT builds default to **Release** when no build type is set.
+  The same 2,300-frame headless CoreGS 2.0 test at 4× took 128.4 s before
+  and 9.5 s after enabling Release, with matching guest cycles and GS traffic.
+- The upstream **VU1 ahead-of-time compiler** now covers all 2,048 entry points
+  of the verified CHT microcode image. Unmatched microcode falls back to the
+  interpreter. The same 2,400-frame headless CoreGS 2.0 test through the S-1
+  licence car preview at 4× took 24.8 s before and 8.0 s after. Eight sampled
+  frames matched and 7,474 sampled VU1 checks found zero differences.
+
+### Fast-forward
+
+Set **Settings → General → Fast-forward speed** to **1×–10×** (default **2×**).
+Press **Tab** while playing to toggle between normal speed and that multiplier.
+The whole game speeds up, including audio, which rises in pitch and returns to
+normal when you toggle back. The info icon explains that high multipliers may
+reduce performance. If VSync limits fast-forward with GSdx, turn it off in
+graphics settings.
+
+On a CoreGS 2.0 windowed test, toggling 2× raised the game from about 60 to
+120 guest VBlanks per second and back. Actual speed depends on the scene and
+hardware. Sustained 60 FPS and audio playback in the garage and S-1 preview
+still need interactive verification.
+
+### Build and compatibility
+
+Use your own SCAJ-30007 ISO. This repository contains source, with the
+[CHT VU1 build recipe](docs/VU1-MICROCODE-SOURCE.md#scaj-30007-traditional-chinese)
+available for preparing the native build. CHT support for RetroAchievements
+and edition-specific hooks such as the 360° camera and FoV adjustment is
+pending. The release badges and project overview below describe upstream
+GT4Recomp.
 
 GT4Recomp is a static recompilation of **Gran Turismo 4 (NTSC-U, SCUS-97328)** for **Windows x86-64**. The game's own
 code is translated ahead of time into C++ and compiled to native machine code; the PS2 hardware it talks to is

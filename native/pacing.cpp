@@ -69,6 +69,13 @@ void FramePacer::anchor(std::int64_t now) {
   anchored_ = true;
 }
 
+void FramePacer::change_rate(std::uint64_t rate, std::int64_t now) {
+  if (!rate)
+    throw std::invalid_argument("FramePacer needs a nonzero rate");
+  rate_ = rate;
+  anchor(now);
+}
+
 void FramePacer::shift(std::int64_t ticks) {
   scaled_deadline_ += ticks * static_cast<std::int64_t>(rate_);
 }
@@ -109,6 +116,12 @@ void LinearResampler::set_ratio(double ratio) {
   ratio_ = clamp_value(ratio, min_ratio, max_ratio);
 }
 
+void LinearResampler::set_speed(unsigned speed) {
+  if (speed < 1 || speed > 10)
+    throw std::invalid_argument("audio speed must be 1–10");
+  speed_ = speed;
+}
+
 std::int16_t LinearResampler::sample(std::size_t index, int channel,
                                      const std::int16_t *input) const {
   // Index 0 is the previous block's last frame; index k is input frame k-1.
@@ -120,7 +133,7 @@ std::int16_t LinearResampler::sample(std::size_t index, int channel,
 std::size_t LinearResampler::process(const std::int16_t *input,
                                      std::size_t frames,
                                      std::vector<std::int16_t> &output) {
-  const double step = 1.0 / ratio_;
+  const double step = static_cast<double>(speed_) / ratio_;
   std::size_t emitted = 0;
   while (position_ < static_cast<double>(frames)) {
     const auto index = static_cast<std::size_t>(position_);

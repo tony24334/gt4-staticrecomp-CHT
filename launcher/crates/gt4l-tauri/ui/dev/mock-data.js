@@ -219,6 +219,11 @@
       page: "advanced", control: "toggle", values: null, default: false, current: false },
     { visible_when: { id: "renderer", equals: "pcsx2" }, id: "perf_overlay_fps", label: "Overlay: FPS", help: "Shows the frame rate in the performance overlay.",
       page: "advanced", control: "toggle", values: null, default: true, current: true },
+    { id: "fast_forward_speed", label: "Fast-forward speed", group: "general", page: "basic", control: "dropdown",
+      help: "Press Tab to toggle this speed. Use with caution.", default: "2", current: "2",
+      values: Array.from({ length: 10 }, function (_, index) {
+        return { value: String(index + 1), label: (index + 1) + "×" };
+      }) },
     { id: "debug_internal", label: "Internal debug", help: "Not shown to users.",
       page: "hidden", control: "toggle", values: null, default: false, current: true },
     // TASK-091 (1.2.1): the launcher's own row, appended by the Rust table (commands::get_settings_table).

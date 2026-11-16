@@ -917,6 +917,21 @@ mod table_tests {
     }
 
     #[test]
+    fn general_lists_all_fast_forward_speeds() {
+        let mut settings = Settings::default();
+        settings.set_by_user("fast_forward_speed", "10").unwrap();
+        let table = settings_table(&settings, &Controls::default());
+        let speed = row(&table, "fast_forward_speed");
+        assert_eq!(speed["group"], "general");
+        assert_eq!(speed["control"], "dropdown");
+        assert_eq!(speed["current"], "10");
+        assert_eq!(speed["values"].as_array().unwrap().len(), 10);
+        assert_eq!(speed["values"][0]["label"], "1×");
+        assert_eq!(speed["values"][9]["label"], "10×");
+        assert!(speed["help"].as_str().unwrap().contains("Use with caution"));
+    }
+
+    #[test]
     fn without_monitors_the_rows_fall_back_to_primary_and_desktop() {
         let table = settings_table(&Settings::default(), &Controls::default());
         assert_eq!(row(&table, "monitor")["current"], "primary");

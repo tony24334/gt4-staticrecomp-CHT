@@ -1443,7 +1443,7 @@
     var order = Array.prototype.map.call(document.querySelectorAll(".content .row"), function (row) {
       return row.getAttribute("data-row");
     });
-    check("General lists Language, Channel, Discord Rich Presence, Version and GPU acceleration in that order", order.join(",") === "language,update_channel,discord_rich_presence,launcher_version,launcher_gpu", order.join(","));
+    check("General lists the fast-forward speed before Version", order.join(",") === "language,update_channel,discord_rich_presence,fast_forward_speed,launcher_version,launcher_gpu", order.join(","));
     var channelSelect = document.querySelector("[data-setting=\"update_channel\"]");
     check("the Channel row shows Stable", !!channelSelect && channelSelect.textContent.indexOf(T("choice.update_channel.stable")) === 0,
       channelSelect ? channelSelect.textContent : "no row");

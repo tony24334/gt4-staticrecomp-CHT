@@ -118,6 +118,19 @@ const VERIFY_CHOICES: &[Choice] = &[
 
 const TOGGLE: Kind = Kind::Toggle;
 
+const FAST_FORWARD_CHOICES: &[Choice] = &[
+    Choice { value: "1", label: "1×", selectable: true },
+    Choice { value: "2", label: "2×", selectable: true },
+    Choice { value: "3", label: "3×", selectable: true },
+    Choice { value: "4", label: "4×", selectable: true },
+    Choice { value: "5", label: "5×", selectable: true },
+    Choice { value: "6", label: "6×", selectable: true },
+    Choice { value: "7", label: "7×", selectable: true },
+    Choice { value: "8", label: "8×", selectable: true },
+    Choice { value: "9", label: "9×", selectable: true },
+    Choice { value: "10", label: "10×", selectable: true },
+];
+
 /// Every user setting, in display order. Ids are the TOML keys.
 pub const SETTINGS: &[SettingDef] = &[
     SettingDef {
@@ -298,6 +311,16 @@ pub const SETTINGS: &[SettingDef] = &[
         info: "Shows that you are playing Gran Turismo 4 or Gran Turismo 4 Spec II in your Discord profile while a game is running. The game name, GT4Recomp and the session time are shown. No mode, track, car, save, account or path is shared. On by default; turn off to keep your play private.",
         kind: TOGGLE,
         default: "on",
+        connected: true,
+    },
+    SettingDef {
+        id: "fast_forward_speed",
+        page: Page::General,
+        group: "Gameplay",
+        title: "Fast-forward speed",
+        info: "Press Tab while playing to toggle between 1× and this speed. Use with caution. High multipliers increase CPU and GPU load and may reduce performance. Audio speeds up and rises in pitch. With GSdx, turn off VSync if it limits the speed.",
+        kind: Kind::Choice(FAST_FORWARD_CHOICES),
+        default: "2",
         connected: true,
     },
 ];

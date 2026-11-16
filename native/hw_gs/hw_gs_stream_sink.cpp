@@ -384,7 +384,9 @@ void vsync_now(bool odd_field) {
   hw.set_age_targets(!hold);
   hw.flush();
   hw.next_frame();  // one guest frame per VBlank, windowed or headless (the session line's `frames`)
-  if (hw.has_window() && !hold) {
+  // Keep processing every guest frame, even when fast-forward limits display submissions.
+  const auto speed = gt4::pacing::fast_forward_speed.load(std::memory_order_relaxed);
+  if (hw.has_window() && !hold && g_vsyncs % speed == 0) {
     // A device with one queue has no thread to show pictures from (hw_gs_backend.cpp, present_paced): the wait is here, and holds up
     // the next picture. So it leaves room, or waiting would raise the mean interval it waits for: it locked at 20 frames per second.
     if (gt4::pacing::frame_skip_recent.load(std::memory_order_relaxed) && !hw.has_own_present_queue()) {

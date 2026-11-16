@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <string_view>
 #include <vector>
 
 namespace gt4::pacing {
@@ -34,6 +35,18 @@ inline std::atomic<std::int32_t> gs_cost_us{0};
 inline std::atomic<std::int64_t> ee_gs_wait_us{0};
 inline std::atomic<bool> frame_skip_engaged{false};
 inline std::atomic<bool> frame_skip_recent{false};
+// Real-time speed target, shared with the in-process presentation worker.
+inline std::atomic<unsigned> fast_forward_speed{1};
+inline constexpr unsigned default_fast_forward_speed = 2;
+
+// Returns zero for an invalid multiplier.
+inline constexpr unsigned parse_fast_forward_speed(std::string_view value) {
+  if (value == "10")
+    return 10;
+  if (value.size() == 1 && value.front() >= '1' && value.front() <= '9')
+    return static_cast<unsigned>(value.front() - '0');
+  return 0;
+}
 
 // Audio latency target: 60 ms of stereo 48 kHz frames.
 inline constexpr std::size_t target_latency_frames = 2880;
@@ -70,6 +83,7 @@ public:
 
   // Starts the grid: the first frame is due at `now`.
   void anchor(std::int64_t now);
+  void change_rate(std::uint64_t rate, std::int64_t now);
   // IN-521: moves the grid by this many ticks; positive is later.
   void shift(std::int64_t ticks);
   // TASK-082: behind by this many periods before the grid restarts (default 1). With frames left out the host catches up, so a
@@ -112,6 +126,9 @@ public:
   // Throws std::invalid_argument outside [min_ratio, max_ratio].
   void set_ratio(double ratio);
   double ratio() const { return ratio_; }
+  // Guest speed changes how far each output frame advances through the input.
+  void set_speed(unsigned speed);
+  unsigned speed() const { return speed_; }
   // Appends the resampled stereo frames to `output`; returns frames appended.
   std::size_t process(const std::int16_t *input, std::size_t frames,
                       std::vector<std::int16_t> &output);
@@ -120,6 +137,7 @@ private:
   std::int16_t sample(std::size_t index, int channel,
                       const std::int16_t *input) const;
   double ratio_ = 1.0;
+  unsigned speed_ = 1;
   // Position of the next output, relative to the previous input frame (index 0).
   double position_ = 1.0;
   std::int16_t previous_[2] = {0, 0};
@@ -157,6 +175,7 @@ public:
   explicit FrameRing(std::size_t capacity_frames);
   std::size_t size() const { return size_; }
   std::size_t capacity() const { return capacity_; }
+  void clear() { head_ = size_ = 0; }
   // Copies as many frames as fit; returns the number accepted.
   std::size_t write(const std::int16_t *frames, std::size_t count);
   // Copies up to `count` frames out; returns the number read.

@@ -240,6 +240,8 @@ gt4::pacing::Counters counters_at_last_report;
 bool force_480p_enabled = false;
 gt4::display::Force480pState force_480p_state;
 AudioOutput *audio_output = nullptr;
+unsigned fast_forward_multiplier = gt4::pacing::default_fast_forward_speed;
+bool fast_forward_requested = false;
 // Input bindings (controls.hpp). open_window loads them before the window exists.
 gt4::controls::ControlMap active_controls;
 // TASK-075: gamepad backend (GT4_INPUT=sdl default, xinput for one release). open_window loads it.
@@ -437,6 +439,11 @@ LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM first,
   // Alt+Enter arrives as WM_SYSKEYDOWN; Alt+Enter and F11 toggle borderless fullscreen.
   // Auto-repeat (previous key state bit set) is ignored.
   const bool repeat = (second & (1ll << 30)) != 0;
+  if (message == WM_KEYDOWN && first == VK_TAB) {
+    if (!repeat && fast_forward_multiplier > 1)
+      fast_forward_requested = !fast_forward_requested;
+    return 0;
+  }
   if ((message == WM_SYSKEYDOWN && first == VK_RETURN && !repeat) ||
       (message == WM_KEYDOWN && first == VK_F11 && !repeat)) {
     set_fullscreen(!fullscreen_state.fullscreen());
@@ -616,10 +623,20 @@ void note_frame_skip_vblank() {
 }
 
 void release_frame() {
-  if (pacing_mode == gt4::pacing::Mode::paced) {
+  const unsigned speed = fast_forward_requested ? fast_forward_multiplier : 1;
+  if (speed != gt4::pacing::fast_forward_speed.load(std::memory_order_relaxed)) {
+    frame_pacer->change_rate(gt4::pacing::guest_vblank_rate * speed, frame_clock->now());
+    last_release = 0;
+    if (audio_output)
+      audio_output->set_game_speed(speed);
+    gt4::pacing::fast_forward_speed.store(speed, std::memory_order_relaxed);
+    std::fprintf(stderr, "[pacing] Tab: game speed target %ux\n", speed);
+  }
+  const bool use_frame_clock = pacing_mode == gt4::pacing::Mode::paced || speed > 1;
+  if (use_frame_clock) {
     if (!frame_pacer->anchored())
       frame_pacer->anchor(frame_clock->now());
-    if (const std::int32_t shift = gt4::pacing::grid_shift_us.exchange(0, std::memory_order_relaxed)) {
+    if (const std::int32_t shift = gt4::pacing::grid_shift_us.exchange(0, std::memory_order_relaxed); shift && speed == 1) {
       frame_pacer->shift(static_cast<std::int64_t>(shift) * static_cast<std::int64_t>(frame_clock->frequency()) / 1000000);
     }
     // TASK-084 step 0: the sleep is its own category, so F8 ee_dispatch and unattributed mean work, not sleep.
@@ -645,13 +662,13 @@ void release_frame() {
       // frames (200 ms) are owed and paid back; the laptop's longest stalls were 70-80 ms on top of a delay already owed.
       frame_pacer->set_resync_periods(gt4::pacing::frame_skip_engaged.load(std::memory_order_relaxed) ? 12 : 1);
       const std::int64_t earliest =
-          last_release != 0 && !gt4::pacing::frame_skip_recent.load(std::memory_order_relaxed) ? last_release + min_interval : 0;
+          last_release != 0 && !gt4::pacing::frame_skip_recent.load(std::memory_order_relaxed) ? last_release + min_interval / speed : 0;
       frame_clock->wait_until(std::max(frame_pacer->deadline(), earliest));
     }
   }
   const std::int64_t released = frame_clock->now();
   last_release = released;
-  if (pacing_mode == gt4::pacing::Mode::paced)
+  if (use_frame_clock)
     frame_pacer->release(released);
   pacing_diagnostics.record_release(released, frame_clock->frequency());
 }
@@ -682,7 +699,7 @@ void on_vblank() {
     // Alt+Enter toggles fullscreen: while Alt is held, Enter is not Start.
     const bool alt_held = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
     for (const auto &binding : keyboard_keys) {
-      if (binding.virtual_key == VK_RETURN && alt_held)
+      if (binding.virtual_key == VK_TAB || (binding.virtual_key == VK_RETURN && alt_held))
         continue;
       if (GetAsyncKeyState(binding.virtual_key) & 0x8000)
         buttons |= binding.button_mask;
@@ -714,7 +731,8 @@ void on_vblank() {
       pacing_diagnostics.record_ratio(audio_output->resampler_ratio());
   }
   gt4::achievements::on_vblank(game_window, ps2::g_ram, ps2::kRamSize, ps2::g_spr, ps2::kScratchpadSize);
-  ps2::gs::present();
+  if (input_vblank % gt4::pacing::fast_forward_speed.load(std::memory_order_relaxed) == 0)
+    ps2::gs::present();
 }
 } // namespace
 
@@ -939,6 +957,12 @@ int run_window(const std::function<int()> &emulate) {
     // TASK-079: an invalid GT4_FORCE_WIDESCREEN stops the start here (the hold itself runs at guest VBlank).
     gt4::display::widescreen_hold_enabled();
     pacing_mode = gt4::pacing::parse_mode(std::getenv("GT4_PACING"));
+    const char *speed = std::getenv("GT4_FAST_FORWARD_SPEED");
+    fast_forward_multiplier = speed ? gt4::pacing::parse_fast_forward_speed(speed) : 0;
+    if (!fast_forward_multiplier)
+      fast_forward_multiplier = gt4::pacing::default_fast_forward_speed;
+    fast_forward_requested = false;
+    gt4::pacing::fast_forward_speed.store(1, std::memory_order_relaxed);
     cursor_autohide = gt4::cursor::AutoHide(gt4::cursor::parse_policy(std::getenv("GT4_CURSOR_AUTOHIDE")));
     std::fprintf(stderr, "[window] cursor auto-hide %s (GT4_CURSOR_AUTOHIDE; %u ms without movement over the picture)\n",
                  cursor_autohide.policy().auto_hide ? "on" : "off", cursor_autohide.policy().hide_delay_ms);

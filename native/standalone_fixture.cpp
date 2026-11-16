@@ -323,8 +323,11 @@ void check_renderer() {
 void check_config() {
   const sa::Config sample = sa::parse_config(read_sample("game.ini"));
   check(sample.warnings.empty(), "the launcher's sample has no warning");
-  check(sample.values.size() == 7, "seven keys in the sample");
+  check(sample.values.size() == 8, "eight keys in the sample");
   const sa::Environment environment = sa::config_environment(sample);
+  check(std::find(environment.begin(), environment.end(),
+                  std::pair<std::string, std::string>{"GT4_FAST_FORWARD_SPEED", "2"}) != environment.end(),
+        "game.ini's fast-forward speed reaches the game");
   check(has(environment, "GT4_FULLSCREEN", "1") && has(environment, "GT4_PRESENT_MODE", "fifo"), "fullscreen and present mode");
   check(has(environment, "GT4_MONITOR", "\\\\.\\DISPLAY2") && has(environment, "GT4_OUTPUT_SIZE", "3440x1440"), "monitor and output size");
   check(lacks(environment, "GT4_GS_SYNC") && lacks(environment, "GT4_PERF") && lacks(environment, "GT4_VU1_VERIFY"), "the default switches add nothing");

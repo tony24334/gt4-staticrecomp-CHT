@@ -2069,3 +2069,8 @@ Guest cycles and GIF byte counts matched. Eight sampled frames matched in
 the donor-renderer comparison, and 7,474 sampled VU1 differential checks
 reported zero mismatches. Interactive pacing and audio are pending review.
 See [VU1 image preparation](VU1-MICROCODE-SOURCE.md#scaj-30007-traditional-chinese).
+
+Tab now toggles the normal game speed and the launcher-selected 1x-10x
+multiplier. The audio plays faster and at higher pitch while fast-forward is
+active. The CoreGS 2.0 windowed check reached about 120 guest VBlanks/s at
+2x and returned to about 60 at 1x. See the [November 16 journal](journal/2026-11-16.md).

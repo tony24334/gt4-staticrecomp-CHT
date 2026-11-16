@@ -551,6 +551,11 @@ bool AudioOutput::push(const std::int16_t *samples, std::size_t frames) {
 #endif
   if (mode_ == gt4::pacing::Mode::paced)
     return push_paced(samples, frames);
+  if (resampler_.speed() > 1) {
+    converted_.clear();
+    frames = resampler_.process(samples, frames, converted_);
+    samples = converted_.data();
+  }
   while (frames) {
     const auto count = std::min(frames, frames_per_buffer_ - pending_frames_);
     std::copy_n(samples, count * 2, pending_.data() + pending_frames_ * 2);
@@ -563,17 +568,40 @@ bool AudioOutput::push(const std::int16_t *samples, std::size_t frames) {
   return true;
 }
 
+void AudioOutput::set_game_speed(unsigned speed) {
+  if (speed == resampler_.speed())
+    return;
+  if (!device_)
+    return;
+  reap();
+  check_audio(waveOutReset(device_), "waveOutReset");
+  for (std::size_t index = 0; index < buffer_count_; ++index) {
+    auto &buffer = buffers_[index];
+    if (buffer.queued) {
+      canceled_ += buffer.header.dwBufferLength / 4;
+      buffer.queued = false;
+    }
+  }
+  pending_frames_ = 0;
+  next_buffer_ = 0;
+  started_ = false;
+  ring_.clear();
+  resampler_ = {};
+  resampler_.set_speed(speed);
+  controller_ = gt4::pacing::RateController{static_cast<double>(target_latency_frames_),
+                                           1.0 / (gt4::pacing::guest_vblank_rate * speed)};
+}
+
 void AudioOutput::pump() {
   if (mode_ != gt4::pacing::Mode::paced || !device_)
     return;
   reap();
+  if (started_ && !queued_device_buffers() && submitted_)
+    ++underruns_;
   if (!started_ && ring_.size() >= target_latency_frames_)
     started_ = true;
   if (!started_)
     return;
-  // Nothing queued on the device after audio was submitted: the device starved.
-  if (!queued_device_buffers() && submitted_)
-    ++underruns_;
   // The controller sees the whole queue: device plus ring.
   resampler_.set_ratio(controller_.update(static_cast<double>(queued_frames())));
   // Submit only while the device stays within the target: the excess waits in

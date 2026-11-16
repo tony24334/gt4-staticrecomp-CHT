@@ -20,6 +20,18 @@ fn env_map(pairs: &[(String, String)]) -> std::collections::BTreeMap<String, Str
     pairs.iter().cloned().collect()
 }
 
+#[test]
+fn fast_forward_speed_reaches_the_game_and_standalone_config() {
+    let mut settings = Settings::default();
+    assert_eq!(env_map(&game_environment(&settings))["GT4_FAST_FORWARD_SPEED"], "2");
+    for speed in ["1", "10"] {
+        settings.set_by_user("fast_forward_speed", speed).unwrap();
+        assert_eq!(env_map(&game_environment(&settings))["GT4_FAST_FORWARD_SPEED"], speed);
+        assert!(launch::standalone_config_text(&settings, None).contains(&format!("fast_forward_speed={speed}\n")));
+    }
+    assert!(settings.set_by_user("fast_forward_speed", "11").is_err());
+}
+
 /// The variables of a GSdx session (the only renderer since TASK-096).
 fn game_environment(settings: &Settings) -> Vec<(String, String)> {
     launch::pcsx2_environment(settings, &pcsx2_paths())
@@ -61,7 +73,8 @@ fn default_settings_send_the_main_profile_variables_plus_the_launcher_defaults()
     // TASK-161: the full trigger range is always stated, on by default since rc14 (owner, 2026-11-04; the game reads it
     // for both of its sides).
     assert_eq!(environment["GT4_TRIGGER_FULL_RANGE"], "1");
-    assert_eq!(environment.len(), 11, "the GSdx variables: renderer, process pin, config, PS2_GS and the common holds");
+    assert_eq!(environment["GT4_FAST_FORWARD_SPEED"], "2");
+    assert_eq!(environment.len(), 12, "the GSdx variables: renderer, process pin, config, PS2_GS and the common holds");
 }
 
 #[test]
@@ -580,6 +593,9 @@ fn variables_of_game_ini(text: &str) -> std::collections::BTreeMap<String, Strin
             }
             "trigger_full_range" => {
                 variables.insert("GT4_TRIGGER_FULL_RANGE".to_string(), value.to_string());
+            }
+            "fast_forward_speed" => {
+                variables.insert("GT4_FAST_FORWARD_SPEED".to_string(), value.to_string());
             }
             other => panic!("unknown game.ini key {other}"),
         }

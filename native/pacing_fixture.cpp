@@ -209,6 +209,27 @@ void test_resampler_sine_accuracy() {
   require(refused, "ratio outside +-0.5 % is refused");
 }
 
+void test_fast_forward_audio_keeps_phase_across_audio_blocks() {
+  std::vector<std::int16_t> input;
+  for (int frame = 0; frame < 41; ++frame) {
+    input.push_back(static_cast<std::int16_t>(frame));
+    input.push_back(static_cast<std::int16_t>(-frame));
+  }
+  for (unsigned speed : {2u, 10u}) {
+    LinearResampler resampler;
+    resampler.set_speed(speed);
+    std::vector<std::int16_t> output;
+    for (std::size_t start = 0; start < 41; start += 3)
+      resampler.process(input.data() + 2 * start, std::min<std::size_t>(3, 41 - start), output);
+    require(output.size() == 2 * (40 / speed), "fast-forward compresses the stream by its speed");
+    for (std::size_t frame = 0; frame < output.size() / 2; ++frame) {
+      const auto expected = static_cast<std::int16_t>(frame * speed);
+      require(output[2 * frame] == expected && output[2 * frame + 1] == -expected,
+              "fast-forward preserves stereo and resampling phase across blocks");
+    }
+  }
+}
+
 // Constant device drift of 0.2 % is absorbed by the ratio, not by the queue.
 void test_controller_converges() {
   RateController controller(static_cast<double>(target_latency_frames), 1.0 / 60.0);
@@ -336,6 +357,18 @@ void test_counter_interval_difference() {
 int main() {
   try {
     test_parsers();
+    require(parse_fast_forward_speed("1") == 1 && parse_fast_forward_speed("10") == 10 &&
+                parse_fast_forward_speed("0") == 0 && parse_fast_forward_speed("11") == 0,
+            "fast-forward configuration accepts exactly 1–10");
+    FramePacer speed_pacer(60000, 60);
+    speed_pacer.release(0);
+    require(speed_pacer.deadline() == 1000, "normal rate is 60 Hz");
+    speed_pacer.change_rate(600, 10000);
+    speed_pacer.release(10000);
+    require(speed_pacer.deadline() == 10100, "10x reanchors to 600 Hz");
+    speed_pacer.change_rate(60, 15000);
+    speed_pacer.release(15000);
+    require(speed_pacer.deadline() == 16000, "switching back restores the 60 Hz grid without accumulated delay");
     test_period_accuracy_no_drift();
     test_grid_shift();
     test_resync_periods();
@@ -343,6 +376,7 @@ int main() {
     test_stall_restarts_grid_without_burst();
     test_resampler_unity_is_passthrough();
     test_resampler_sine_accuracy();
+    test_fast_forward_audio_keeps_phase_across_audio_blocks();
     test_controller_converges();
     test_controller_saturates();
     test_controller_no_underrun_with_jitter();
