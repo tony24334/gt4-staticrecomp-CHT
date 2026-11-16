@@ -98,9 +98,6 @@ fn main() {
     }
     // The old per-user install clean-up is not needed to draw the first screen: it runs after the window is created
     // (see the setup closure below).
-    if let Err(message) = gt4l_platform::process::join_kill_on_close_job() {
-        state::log(&dirs, &format!("the game would not end with the launcher: {message}"));
-    }
     // TASK-091 WebView2 guard: the safe mode flag decides the WebView2 arguments, before any web view exists.
     let user_root = startup.user.root().to_path_buf();
     let safe_mode = webview_guard::apply_safe_mode_environment(&user_root);
@@ -159,6 +156,10 @@ fn main() {
         .manage(shared.clone())
         .manage(guard.clone())
         .setup(move |app| {
+            // Join after the WebView2 processes have started so only later children inherit the job.
+            if let Err(message) = gt4l_platform::process::join_kill_on_close_job() {
+                state::log(&dirs_for_setup, &format!("the game would not end with the launcher: {message}"));
+            }
             tray::install(app)?;
             // TASK-091: the window is shown by ui_ready; without it in 12 s the watchdog restarts in safe mode.
             webview_guard::start_watchdog(app.handle().clone(), guard_for_setup);

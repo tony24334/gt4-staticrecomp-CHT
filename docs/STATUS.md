@@ -2048,3 +2048,24 @@ while preparing this handoff. Maintain documentation and new comments in en-US.
 (28,771,288 bytes, sha256 `92666e14386d92fa5098f69a0aab4ae452c1e8978e3329abfd606ed606f0e585`). Adds: monitor names
 without resolution, Resolution default "desktop" (follows the desktop at each start), every gt4-gs value enabled, the
 renderer choice in setup and the GSdx switch in Settings, the GSdx naming, and PR #72 (TASK-089) merged.
+
+## Local SCAJ-30007 port
+
+The first EE ELF candidate has been reconstructed from the owner's CHT ISO.
+The pinned donor translator emitted 324 C++ units. The Windows SDL2 runner
+compiled and reached Arcade mode selection from the CHT ISO in a 2,700-frame
+smoke run with no missing EE entries. Race gameplay and saves are unverified.
+
+The local Windows CoreGS 2.0 comparison build now defaults to Release for CHT
+when no single-config build type is provided. At 4x, the same 2,300-frame
+headless script took 128.373 s on the unoptimized build and 9.481 s on the
+Release build. Both finished with matching guest cycle and GS byte counts
+and zero renderer faults. See the [November 15 journal](journal/2026-11-15.md).
+
+The CHT launcher packages now use the upstream VU1 AOT path with the
+SCAJ-30007 image. A scripted boot through the S-1 car preview took 24.784 s
+before and 8.006 s after in a 2,400-frame CoreGS 2.0 headless run at 4x.
+Guest cycles and GIF byte counts matched. Eight sampled frames matched in
+the donor-renderer comparison, and 7,474 sampled VU1 differential checks
+reported zero mismatches. Interactive pacing and audio are pending review.
+See [VU1 image preparation](VU1-MICROCODE-SOURCE.md#scaj-30007-traditional-chinese).

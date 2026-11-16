@@ -31,3 +31,21 @@ found nothing because the stored bytes are encrypted.
   targets) and confirm the content of the last two instructions.
 - Hypothesis: the VU0 microcode is a separate, unencrypted blob (Nenkai lists one
   for GT4 Online, size `0x920`); not yet located in USA v2.00.
+
+## SCAJ-30007 Traditional Chinese
+
+The pinned CHT ELF stores the same-sized encrypted VU1 blob at file offset
+`0x51E290`, with the keystream above. Two live 16 KiB snapshots agreed on the
+entire image, including the last two instructions, which are zero. The CHT
+image has SHA-256 `9e5bc86098904fa8a4bd82fdea0872d5b1d8220269471014dd4630c46796cdff`.
+
+Extract it with `scripts/cht_vu1_image.py <CHT ELF> <new image file>`, and
+generate the entry list with `scripts/vu1_image.py entries --policy all
+--image <image> --out <new list>`. Run the upstream emitter with
+`--image <image> --entries <list> --entry-policy all --programs-per-file 16
+<new generated directory>`. Prepare the upstream runtime using
+`scripts/prepare_perf_runtime.py <new private runtime directory> --split-vu
+--vu1-aot`. Pass the generated directory as `GT4_VU1_GENERATED_DIR` and the
+prepared runtime as `GT4_CHT_VU1_RUNTIME_SOURCE` in the CHT native build.
+This retains the upstream runtime's live identity checks and interpreter
+fallback for any unmatched program.

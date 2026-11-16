@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "disc": {
+    "size_bytes": 6100746240,
+    "sha256": "620b4ed285ce0bd68c784cc30cf9532bdc71fffe14e087f9926c73c4291f8bd8"
+  },
+  "files": {
+    "/SYSTEM.CNF;1": {
+      "size_bytes": 57,
+      "sha256": "cc6bf687c261028aabdf6f327f25df8bac94b839e7ea5fdd5822df323dcd7d21"
+    },
+    "/SCAJ_300.07;1": {
+      "size_bytes": 273148,
+      "sha256": "56ed51e6e6b5570d7b34f573eaced16d35bcd9838aef61ce978e577c887cd86f"
+    },
+    "/CORE.GT4;1": {
+      "size_bytes": 2005087,
+      "sha256": "3e9bcd6312dfcd10d854d32f0f1cc72b9c107e78223edf1d2279655a8a890226"
+    }
+  },
+  "system": {
+    "boot_path": "/SCAJ_300.07;1",
+    "serial": "SCAJ-30007",
+    "version": "1.01",
+    "video_mode": "NTSC"
+  }
+}

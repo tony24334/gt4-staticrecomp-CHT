@@ -22,12 +22,12 @@ constexpr DWORD kSleepSliceMs = 100;  // a sleeping side re-checks the fatal fla
 const wchar_t *const kEventSuffix[4] = {L"-data", L"-space", L"-response", L"-event"};
 
 std::uint64_t load(const std::uint64_t &value, std::memory_order order = std::memory_order_seq_cst) {
-  return std::atomic_ref<const std::uint64_t>(value).load(order);
+  return std::atomic_ref<std::uint64_t>(const_cast<std::uint64_t &>(value)).load(order);
 }
 void store(std::uint64_t &value, std::uint64_t next, std::memory_order order = std::memory_order_seq_cst) {
   std::atomic_ref<std::uint64_t>(value).store(next, order);
 }
-std::uint32_t load32(const std::uint32_t &value) { return std::atomic_ref<const std::uint32_t>(value).load(std::memory_order_seq_cst); }
+std::uint32_t load32(const std::uint32_t &value) { return std::atomic_ref<std::uint32_t>(const_cast<std::uint32_t &>(value)).load(std::memory_order_seq_cst); }
 void store32(std::uint32_t &value, std::uint32_t next) { std::atomic_ref<std::uint32_t>(value).store(next, std::memory_order_seq_cst); }
 
 std::uint64_t now_us() {

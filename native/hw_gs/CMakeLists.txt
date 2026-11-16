@@ -12,7 +12,7 @@ endif()
 
 # Pure option parsing (GT4_RENDERER, GT4_HW_*): no Vulkan, no Windows types.
 add_library(gt4_hw_options STATIC hw_gs_options.cpp)
-target_compile_options(gt4_hw_options PRIVATE /W4)
+target_compile_options(gt4_hw_options PRIVATE "${GT4_WARNINGS}")
 target_compile_definitions(gt4_hw_options PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # CPU side of the write-back reference (TASK-027 M4): GS front end (M3), shadow local memory (M2),
@@ -36,7 +36,7 @@ add_library(gt4_hw_core STATIC
 target_include_directories(gt4_hw_core PUBLIC
     "${HW_GS_CORE_DIR}/cpuref" "${HW_GS_CORE_DIR}/memory" "${HW_GS_CORE_DIR}/clut"
     "${HW_GS_CORE_DIR}/frontend" "${HW_GS_CORE_DIR}/pixel" "${HW_GS_CORE_DIR}/display")
-target_compile_options(gt4_hw_core PRIVATE /W4 /permissive-)
+target_compile_options(gt4_hw_core PRIVATE "${GT4_WARNINGS}" "$<$<BOOL:${MSVC}>:/permissive->")
 
 # GPU write-back drawer (Vulkan entry points resolved at run time) and its device entry-point table.
 add_library(gt4_hw_gpu STATIC
@@ -44,7 +44,7 @@ add_library(gt4_hw_gpu STATIC
     writeback/hw_gs_vulkan_device_table.cpp)
 target_include_directories(gt4_hw_gpu PRIVATE "${GT4_HW_VULKAN_SDK}/Include" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(gt4_hw_gpu PUBLIC gt4_hw_shaders)
-target_compile_options(gt4_hw_gpu PRIVATE /W4)
+target_compile_options(gt4_hw_gpu PRIVATE "${GT4_WARNINGS}")
 target_compile_definitions(gt4_hw_gpu PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # Renderer of the write-back mode: front end, batch translation, GPU draw, SLM write-back, display.
@@ -55,7 +55,7 @@ target_link_libraries(gt4_hw_writeback PUBLIC gt4_hw_core gt4_hw_gpu hw_gs_lod h
 # CORE2 (the core rewrite, CORE2-DESIGN.md): its GPU file includes Vulkan headers.
 target_include_directories(gt4_hw_writeback PRIVATE "${GT4_HW_VULKAN_SDK}/Include" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(gt4_hw_writeback PRIVATE _CRT_SECURE_NO_WARNINGS)
-target_compile_options(gt4_hw_writeback PRIVATE /W4)
+target_compile_options(gt4_hw_writeback PRIVATE "${GT4_WARNINGS}")
 
 # M4 fixtures: CPU-side de-index/corner rules and GPU equivalence against the CPU reference.
 # Exit code 77 means "no compute-capable Vulkan 1.2 device" and is reported as Skipped, never as a pass.
@@ -95,29 +95,29 @@ endforeach()
 # call goes through the loader and never through another library's import.
 add_library(gt4_hw_vulkan_loader STATIC hw_gs_vulkan_loader.cpp)
 target_include_directories(gt4_hw_vulkan_loader PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${GT4_HW_VULKAN_SDK}/Include")
-target_compile_options(gt4_hw_vulkan_loader PRIVATE /W4)
+target_compile_options(gt4_hw_vulkan_loader PRIVATE "${GT4_WARNINGS}")
 target_compile_definitions(gt4_hw_vulkan_loader PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # Backend, dispatch front end and device code. Vulkan is linked from the SDK import library.
 # TASK-135: the performance HUD. The numbers, the text and the panel (no Vulkan), and what Windows gives them.
 add_library(gt4_hw_hud STATIC hud/hw_hud.cpp hud/hw_hud_system.cpp)
 target_link_libraries(gt4_hw_hud PUBLIC gdi32 user32)
-target_compile_options(gt4_hw_hud PRIVATE /W4)
+target_compile_options(gt4_hw_hud PRIVATE "${GT4_WARNINGS}")
 target_compile_definitions(gt4_hw_hud PRIVATE _CRT_SECURE_NO_WARNINGS)
 add_executable(hw_hud_fixture hud/hw_hud_fixture.cpp)
 target_link_libraries(hw_hud_fixture PRIVATE gt4_hw_hud)
-target_compile_options(hw_hud_fixture PRIVATE /W4)
+target_compile_options(hw_hud_fixture PRIVATE "${GT4_WARNINGS}")
 add_test(NAME hw_hud COMMAND hw_hud_fixture)
 
 add_library(gt4_hw_backend STATIC hw_gs_backend.cpp hw_gs_dispatch.cpp hud/hw_hud_layer.cpp)
 target_include_directories(gt4_hw_backend PRIVATE "${GT4_HW_VULKAN_SDK}/Include")
 target_link_libraries(gt4_hw_backend PUBLIC gt4_hw_hud gt4_hw_options gt4_pacing gt4_hw_writeback gt4_hw_vulkan_loader "${GT4_HW_VULKAN_SDK}/Lib/vulkan-1.lib")
-target_compile_options(gt4_hw_backend PRIVATE /W4)
+target_compile_options(gt4_hw_backend PRIVATE "${GT4_WARNINGS}")
 target_compile_definitions(gt4_hw_backend PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 add_executable(hw_options_fixture hw_options_fixture.cpp)
 target_link_libraries(hw_options_fixture PRIVATE gt4_hw_options)
-target_compile_options(hw_options_fixture PRIVATE /W4)
+target_compile_options(hw_options_fixture PRIVATE "${GT4_WARNINGS}")
 
 # The shared presentation_rect lives in native_vulkan.cpp. The fixture compiles that file directly
 # (it loads the Vulkan loader at run time) instead of linking the donor runtime library.
@@ -125,39 +125,39 @@ add_executable(hw_present_rect_fixture hw_present_rect_fixture.cpp "${CMAKE_CURR
 target_include_directories(hw_present_rect_fixture PRIVATE "${GT4_HW_VULKAN_SDK}/Include")
 target_link_libraries(hw_present_rect_fixture PRIVATE gt4_pacing gt4_perf_probe gt4_install_paths gt4_vulkan_extensions user32)
 target_compile_definitions(hw_present_rect_fixture PRIVATE GT4_VULKAN_SHADER_DIR="" _CRT_SECURE_NO_WARNINGS)
-target_compile_options(hw_present_rect_fixture PRIVATE /W4)
+target_compile_options(hw_present_rect_fixture PRIVATE "${GT4_WARNINGS}")
 
 # IN-414: core 2's HOST->LOCAL fast path against memory::hostToLocal (CPU only).
 add_executable(hw_core2_upload_fixture core2/core2_upload_fixture.cpp)
 target_include_directories(hw_core2_upload_fixture PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(hw_core2_upload_fixture PRIVATE gt4_hw_core)
-target_compile_options(hw_core2_upload_fixture PRIVATE /W4)
+target_compile_options(hw_core2_upload_fixture PRIVATE "${GT4_WARNINGS}")
 add_test(NAME hw_core2_upload_swizzle COMMAND hw_core2_upload_fixture)
 
 # IN-535: the colour pixels a depth fill at another base replaces, against memory::pixelSlot (CPU only).
 add_executable(hw_core2_depth_alias_fixture core2/core2_depth_alias_fixture.cpp)
 target_include_directories(hw_core2_depth_alias_fixture PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(hw_core2_depth_alias_fixture PRIVATE gt4_hw_core)
-target_compile_options(hw_core2_depth_alias_fixture PRIVATE /W4)
+target_compile_options(hw_core2_depth_alias_fixture PRIVATE "${GT4_WARNINGS}")
 add_test(NAME hw_core2_depth_alias COMMAND hw_core2_depth_alias_fixture)
 
 # IN-514: the deadline of the flare table read (CPU only).
 add_executable(hw_flare_table_fixture hw_flare_table_fixture.cpp)
-target_compile_options(hw_flare_table_fixture PRIVATE /W4)
+target_compile_options(hw_flare_table_fixture PRIVATE "${GT4_WARNINGS}")
 add_test(NAME hw_flare_table COMMAND hw_flare_table_fixture)
 
 # IN-521: the display queue control (CPU only).
 add_executable(hw_present_latency_fixture hw_present_latency_fixture.cpp)
-target_compile_options(hw_present_latency_fixture PRIVATE /W4)
+target_compile_options(hw_present_latency_fixture PRIVATE "${GT4_WARNINGS}")
 add_test(NAME hw_present_latency COMMAND hw_present_latency_fixture)
 add_executable(hw_present_spacing_fixture hw_present_spacing_fixture.cpp)
-target_compile_options(hw_present_spacing_fixture PRIVATE /W4)
+target_compile_options(hw_present_spacing_fixture PRIVATE "${GT4_WARNINGS}")
 add_test(NAME hw_present_spacing COMMAND hw_present_spacing_fixture)
 
 add_executable(hw_gs_smoke hw_gs_smoke.cpp)
 target_include_directories(hw_gs_smoke PRIVATE "${GT4_HW_VULKAN_SDK}/Include")
 target_link_libraries(hw_gs_smoke PRIVATE gt4_hw_backend user32)
-target_compile_options(hw_gs_smoke PRIVATE /W4)
+target_compile_options(hw_gs_smoke PRIVATE "${GT4_WARNINGS}")
 target_compile_definitions(hw_gs_smoke PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # HWR shader toolchain and GPU pixel exactness fixture (TASK-027, M4). Pinned glslang, IN-201.
@@ -169,7 +169,10 @@ add_subdirectory(shaders)
 add_library(gt4_hw_stream_sink STATIC hw_gs_stream_sink.cpp hw_gs_prepare.cpp hw_cpu_sampler.cpp)
 target_include_directories(gt4_hw_stream_sink PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(gt4_hw_stream_sink PUBLIC gt4_hw_backend)
-target_compile_options(gt4_hw_stream_sink PRIVATE /W4)
+target_compile_options(gt4_hw_stream_sink PRIVATE "${GT4_WARNINGS}")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT MSVC)
+    target_compile_options(gt4_hw_stream_sink PRIVATE -fms-extensions)
+endif()
 target_compile_definitions(gt4_hw_stream_sink PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # Pure libraries and their CTest fixtures, built inside the game tree (they also build standalone; see each folder).
@@ -183,11 +186,11 @@ add_subdirectory(replace)
 
 add_executable(hw_stream_sink_fixture hw_stream_sink_fixture.cpp)
 target_link_libraries(hw_stream_sink_fixture PRIVATE gt4_gs_stream_client)
-target_compile_options(hw_stream_sink_fixture PRIVATE /W4)
+target_compile_options(hw_stream_sink_fixture PRIVATE "${GT4_WARNINGS}")
 
 # TASK-027 CPU survey: the GT4_CPU_SAMPLER sampler on a known busy thread (registered as hw_cpu_sampler).
 add_executable(hw_cpu_sampler_fixture hw_cpu_sampler_fixture.cpp hw_cpu_sampler.cpp)
-target_compile_options(hw_cpu_sampler_fixture PRIVATE /W4)
+target_compile_options(hw_cpu_sampler_fixture PRIVATE "${GT4_WARNINGS}")
 target_compile_definitions(hw_cpu_sampler_fixture PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # IN-468: profile-guided optimisation of the GS pipeline libraries only (the EE, VU and IOP code is not touched).

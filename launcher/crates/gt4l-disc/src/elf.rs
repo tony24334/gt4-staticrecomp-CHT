@@ -76,7 +76,26 @@ impl std::error::Error for ElfError {}
 /// Rebuilds the ELF from raw `CORE.GT4` bytes and checks it against the pinned hash.
 pub fn reconstruct(core: &[u8], policy: &NativePolicy) -> Result<Vec<u8>, ElfError> {
     let payload = inflate_core(core)?;
-    let parts = split_payload(&payload, policy)?;
+    reconstruct_payload(&payload, policy)
+}
+
+// The caller verifies the CHT CORE identity before using its observed DEFLATE framing.
+pub(crate) fn reconstruct_cht(core: &[u8], policy: &NativePolicy) -> Result<Vec<u8>, ElfError> {
+    let mut decoder = Decompress::new(false);
+    let mut payload = Vec::with_capacity(6_078_901);
+    let stream = core.get(6..).ok_or(ElfError::Truncated("header"))?;
+    let status = decoder.decompress_vec(stream, &mut payload, FlushDecompress::Finish)
+        .map_err(|error| ElfError::InvalidDeflate(error.to_string()))?;
+    if status != Status::StreamEnd || payload.len() != 6_078_900
+        || decoder.total_in() as usize + 8 != stream.len()
+    {
+        return Err(ElfError::InvalidDeflate("unexpected SCAJ-30007 framing".into()));
+    }
+    reconstruct_payload(&payload, policy)
+}
+
+fn reconstruct_payload(payload: &[u8], policy: &NativePolicy) -> Result<Vec<u8>, ElfError> {
+    let parts = split_payload(payload, policy)?;
     let image = assemble(&parts, policy)?;
     if sha256_hex(&image) != policy.native_elf_sha256 {
         return Err(ElfError::HashMismatch);

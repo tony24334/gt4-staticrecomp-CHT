@@ -476,7 +476,11 @@ fn extract_and_rebuild(image: &Path, pins: &Pins) -> Result<(Vec<u8>, Vec<u8>), 
     if core_identity != pins.core {
         return Err(SetupError::Internal("CORE.GT4 differs from the pinned identity".into()));
     }
-    let image = elf::reconstruct(&core, &pins.policy).map_err(|error| SetupError::Internal(error.to_string()))?;
+    let image = if pins.serial == "SCAJ-30007" {
+        elf::reconstruct_cht(&core, &pins.policy)
+    } else {
+        elf::reconstruct(&core, &pins.policy)
+    }.map_err(|error| SetupError::Internal(error.to_string()))?;
     let elf_identity = Identity { size_bytes: image.len() as u64, sha256: elf::sha256_hex(&image) };
     if elf_identity != pins.elf {
         return Err(SetupError::Internal("rebuilt ELF differs from the pinned identity".into()));
@@ -490,7 +494,7 @@ fn write_staging(request: &SetupRequest<'_>, core: &[u8], image: &[u8]) -> Resul
     }
     fs::create_dir_all(request.staging)?;
     write_synced(&request.staging.join(CORE_FILE), core)?;
-    write_synced(&request.staging.join(ELF_FILE), image)?;
+    write_synced(&request.staging.join(request.pins.elf_file()), image)?;
     Ok(())
 }
 
@@ -523,11 +527,12 @@ pub(crate) fn unix_seconds() -> u64 {
 
 /// Fast check: the prepared files exist with the pinned sizes.
 pub fn verify_prepared(prepared: &Path, pins: &Pins) -> Result<(), String> {
-    let elf_path = prepared.join(ELF_FILE);
+    let elf_file = pins.elf_file();
+    let elf_path = prepared.join(elf_file);
     let core_path = prepared.join(CORE_FILE);
-    let elf_size = fs::metadata(&elf_path).map_err(|_| format!("{ELF_FILE} is missing"))?.len();
+    let elf_size = fs::metadata(&elf_path).map_err(|_| format!("{elf_file} is missing"))?.len();
     if elf_size != pins.elf.size_bytes {
-        return Err(format!("{ELF_FILE} has size {elf_size}, expected {}", pins.elf.size_bytes));
+        return Err(format!("{elf_file} has size {elf_size}, expected {}", pins.elf.size_bytes));
     }
     let core_size = fs::metadata(&core_path).map_err(|_| format!("{CORE_FILE} is missing"))?.len();
     if core_size != pins.core.size_bytes {

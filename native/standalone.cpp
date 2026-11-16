@@ -182,6 +182,7 @@ std::optional<GameId> game_for_executable(std::string_view file_name) {
   const std::string name = lower(file_name);
   // The names of the build, and of a release (scripts/make_distribution.py): a direct start of a release was refused without them.
   if (name == "gt4vulkan.exe" || name == "gt4.exe") return GameId{"gt4", "SCUS_973.28"};
+  if (name == "gt4vulkan-cht.exe" || name == "gt4-cht.exe") return GameId{"cht", "SCAJ_300.07"};
   if (name == "gt4vulkan-spec2.exe" || name == "gt4-spec2.exe") return GameId{"spec2", "SCUS_974.36"};
   return std::nullopt;
 }

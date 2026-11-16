@@ -12,6 +12,32 @@ use gt4l_disc::iso::Iso;
 use gt4l_disc::Pins;
 
 #[test]
+#[ignore = "set GT4_CHT_ISO to the owner's SCAJ-30007 image"]
+fn traditional_chinese_disc_identifies_and_prepares() {
+    use gt4l_disc::{identify, DiscGame, Spec2Pins};
+    use gt4l_disc::setup::{self, Installed, SetupRequest};
+    use std::sync::atomic::AtomicBool;
+
+    let path = PathBuf::from(std::env::var_os("GT4_CHT_ISO").expect("GT4_CHT_ISO"));
+    let pins = Pins::traditional_chinese().unwrap();
+    let identified = identify::identify(&path, &Pins::embedded().unwrap(), &Spec2Pins::embedded().unwrap()).unwrap();
+    assert_eq!(identified.game, DiscGame::TraditionalChinese);
+    let root = std::env::temp_dir().join(format!("gt4l-cht-{}", std::process::id()));
+    std::fs::create_dir(&root).unwrap();
+    let prepared = root.join("prepared");
+    let staging = root.join("staging");
+    let request = SetupRequest {
+        disc: &path, prepared: &prepared, staging: &staging, install_dir: &root,
+        pins: &pins, launcher_version: "test", cancel: &AtomicBool::new(false),
+    };
+    let receipt = setup::run(&request, &mut |_, _| {}).unwrap();
+    assert!(receipt.qualified_dump);
+    assert_eq!(elf::sha256_hex(&std::fs::read(prepared.join("SCAJ_300.07")).unwrap()), pins.elf.sha256);
+    assert!(matches!(setup::check_installed(&prepared, &root.join("disc"), &root, &pins), Installed::Ready { .. }));
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn embedded_pins_are_self_consistent() {
     let pins = Pins::embedded().expect("pins parse");
     assert_eq!(pins.serial, "SCUS-97328");

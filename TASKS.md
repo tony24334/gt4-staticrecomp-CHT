@@ -3430,3 +3430,15 @@ compatibility pin (executable, target, disc, renderer, settings); a disposable d
 an uninterrupted run at the same guest boundary; a coordinated capture boundary (EE, VU and GS workers fenced, GPU work finished,
 in-flight card and disc I/O settled); a CoreGS 2.0 logical state independent of Vulkan handles (the external GS process separate
 or excluded); then the launcher's save and resume flow. Effort is not measured. Starts only on the owner's word after 1.3.0.
+
+### TASK-174 — Reconstruct the SCAJ-30007 Traditional Chinese EE ELF
+
+Local Windows candidate built on `task/174-cht-elf`. The experimental ELF reproduces the three CORE
+record bodies and uses the USA data zero-fill policy pending CHT loader validation.
+The pinned donor source, built with Zig for this experiment, emitted 324 units.
+The Windows SDL2 runner reached Arcade mode selection in a scripted boot.
+The local Windows launcher now recognizes and prepares SCAJ-30007. The native
+Release build integrates the upstream VU1 AOT path for the verified CHT image.
+Scripted S-1 measurements and validation are recorded in the
+[status report](docs/STATUS.md#local-scaj-30007-port).
+Race gameplay, save parity, and interactive pacing and audio remain unverified.

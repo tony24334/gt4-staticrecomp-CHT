@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
-use gt4l_core::games::{self, Game, GT4, SPEC2};
+use gt4l_core::games::{self, Game, CHT, GT4, SPEC2};
 use gt4l_core::gpu::GpuDevice;
 use gt4l_core::gs_release::Step;
 use gt4l_core::launch::{self, SetupRenderer};
@@ -126,6 +126,7 @@ pub fn game_title(game: &Game) -> String {
 pub fn game_variant(game: &Game, version: &str, image_name: &str) -> String {
     match DiscGame::from_id(game.id) {
         Some(DiscGame::Spec2) => spec2_variant(image_name),
+        Some(DiscGame::TraditionalChinese) => format!("SCAJ-30007 v{version}"),
         _ => format!("USA v{version}"),
     }
 }
@@ -209,6 +210,7 @@ pub fn choose_disc_path_for(shared: &Shared, path: &Path, requested: Option<&str
             let game: &'static Game = match found.game {
                 DiscGame::Gt4 => &GT4,
                 DiscGame::Spec2 => &SPEC2,
+                DiscGame::TraditionalChinese => &CHT,
             };
             let summary = found.summary;
             let mut state = lock(shared);
@@ -300,6 +302,7 @@ pub fn start_with(
             Ok(found) => Some(match found.game {
                 DiscGame::Gt4 => &GT4,
                 DiscGame::Spec2 => &SPEC2,
+                DiscGame::TraditionalChinese => &CHT,
             }),
             Err(error) => {
                 let message = error.user_message_in(state::current_language());
@@ -332,7 +335,7 @@ pub fn start_with(
         state.setup_outcome = SetupOutcome::None;
         state.setup_run = SetupRun { step: "copying".into(), ..SetupRun::default() };
         state.setup_cancel.store(false, Ordering::Relaxed);
-        (disc, state.pins.clone(), state.spec2_pins.clone(), game, installed_before, state.game_dirs(game), state.setup_cancel.clone(), state.install_dir.clone())
+        (disc, if game.id == CHT.id { state.cht_pins.clone() } else { state.pins.clone() }, state.spec2_pins.clone(), game, installed_before, state.game_dirs(game), state.setup_cancel.clone(), state.install_dir.clone())
     };
     let handle = std::thread::spawn(move || {
         // Setup always writes the data folder's root, even when older game files are read from another folder.

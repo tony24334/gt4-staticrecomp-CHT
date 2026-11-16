@@ -17,6 +17,7 @@ use crate::spec2;
 pub enum DiscGame {
     Gt4,
     Spec2,
+    TraditionalChinese,
 }
 
 impl DiscGame {
@@ -25,6 +26,7 @@ impl DiscGame {
         match self {
             DiscGame::Gt4 => "gt4",
             DiscGame::Spec2 => "spec2",
+            DiscGame::TraditionalChinese => "cht",
         }
     }
 
@@ -32,6 +34,7 @@ impl DiscGame {
         match id {
             "gt4" => Some(DiscGame::Gt4),
             "spec2" => Some(DiscGame::Spec2),
+            "cht" => Some(DiscGame::TraditionalChinese),
             _ => None,
         }
     }
@@ -51,5 +54,10 @@ pub fn identify(disc: &Path, gt4: &Pins, spec2_pins: &Spec2Pins) -> Result<Ident
         return spec2::precheck_opened(iso, config, spec2_pins).map(|summary| Identified { game: DiscGame::Spec2, summary });
     }
     drop(iso);
+    if config.serial == "SCAJ-30007" {
+        let pins = Pins::traditional_chinese().map_err(SetupError::Internal)?;
+        return setup::precheck(disc, &pins)
+            .map(|summary| Identified { game: DiscGame::TraditionalChinese, summary });
+    }
     setup::precheck(disc, gt4).map(|summary| Identified { game: DiscGame::Gt4, summary })
 }

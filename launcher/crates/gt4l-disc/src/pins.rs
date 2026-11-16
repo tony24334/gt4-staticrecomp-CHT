@@ -63,13 +63,28 @@ struct NativeJson {
 impl Pins {
     /// The pins of the qualified USA v2.00 disc, from the embedded `docs/inputs` files.
     pub fn embedded() -> Result<Pins, String> {
-        let disc: DiscJson = serde_json::from_str(DISC_JSON).map_err(|error| format!("usa-v2.00.json: {error}"))?;
+        Self::from_json(DISC_JSON, NATIVE_JSON)
+    }
+
+    pub fn traditional_chinese() -> Result<Pins, String> {
+        Self::from_json(
+            include_str!("../../../../docs/inputs/cht-scaj-30007.json"),
+            include_str!("../../../../docs/inputs/cht-scaj-30007-native.json"),
+        )
+    }
+
+    pub(crate) fn elf_file(&self) -> &str {
+        self.boot_path.trim_start_matches('/').trim_end_matches(";1")
+    }
+
+    fn from_json(disc_json: &str, native_json: &str) -> Result<Pins, String> {
+        let disc: DiscJson = serde_json::from_str(disc_json).map_err(|error| error.to_string())?;
         let native: NativeJson =
-            serde_json::from_str(NATIVE_JSON).map_err(|error| format!("usa-v2.00-native.json: {error}"))?;
+            serde_json::from_str(native_json).map_err(|error| error.to_string())?;
         let core = disc
             .files
             .get("/CORE.GT4;1")
-            .ok_or("usa-v2.00.json has no CORE.GT4 entry")?;
+            .ok_or("Disc manifest has no CORE.GT4 entry")?;
         Ok(Pins {
             disc: Identity { size_bytes: disc.disc.size_bytes, sha256: disc.disc.sha256 },
             core: Identity { size_bytes: core.size_bytes, sha256: core.sha256.clone() },

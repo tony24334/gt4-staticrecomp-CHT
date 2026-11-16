@@ -41,6 +41,7 @@ pub struct AppState {
     pub dirs: DataDirs,
     pub pins: Pins,
     pub spec2_pins: Spec2Pins,
+    pub cht_pins: Pins,
     pub config: ConfigFile,
     pub controls: Controls,
     /// The user data in use: `%APPDATA%\GT4Recomp`, or the 1.2.0 places until their move has happened.
@@ -251,10 +252,12 @@ impl AppState {
             libraries.insert(game.id, GameLibrary { library: opened.library, user: opened.user });
         }
         let spec2_pins = Spec2Pins::embedded()?;
+        let cht_pins = Pins::traditional_chinese()?;
         let mut state = AppState {
             dirs,
             pins,
             spec2_pins,
+            cht_pins,
             config,
             controls,
             user_dirs: user,
@@ -328,6 +331,7 @@ impl AppState {
     pub fn installed_of(&self, game: &'static Game) -> disc_setup::Installed {
         let dirs = self.game_dirs(game);
         match DiscGame::from_id(game.id) {
+            Some(DiscGame::TraditionalChinese) => gt4l_disc::setup::check_installed(&dirs.prepared(), &dirs.disc_folder(), &self.install_dir, &self.cht_pins),
             Some(DiscGame::Spec2) => disc_spec2::check_installed(&dirs.prepared(), &dirs.disc_folder(), &self.install_dir, &self.spec2_pins),
             _ => disc_setup::check_installed(&dirs.prepared(), &dirs.disc_folder(), &self.install_dir, &self.pins),
         }

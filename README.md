@@ -1,6 +1,6 @@
 <div align="center">
 
-# GT4Recomp
+# GT4Recomp-CHT
 
 **Gran Turismo 4, recompiled to run natively on PC.**<br>
 No JIT, no emulator window, full speed.
@@ -21,6 +21,26 @@ No JIT, no emulator window, full speed.
 <img src="docs/images/night-race-hires.webp" alt="Gran Turismo 4 night race at high resolution, 60 FPS" width="100%">
 
 </div>
+
+## Traditional Chinese edition
+
+This fork of [GT4Recomp](https://github.com/moesuito/gt4-staticrecomp) adds
+experimental support for **Gran Turismo 4 Traditional Chinese (SCAJ-30007)**.
+The launcher can identify and prepare the supported disc image. The Windows
+x64 native build supports CoreGS 2.0 and the separate GSdx renderer.
+
+- **Release optimization.** Single-config CHT builds default to Release.
+- **Precompiled VU1.** The upstream compiler handles all 2,048 entry points
+  of the verified CHT microcode image. The same 2,400-frame CoreGS 2.0
+  headless run through the S-1 preview at 4x fell from 24.8 s to 8.0 s.
+  Eight sampled frames matched, and 7,474 VU1 checks reported zero differences.
+  Interactive frame pacing and audio still need validation.
+
+Use your own SCAJ-30007 ISO. Game data, generated game code, and local builds
+are kept out of this source repository. See the [native VU1 build
+recipe](docs/VU1-MICROCODE-SOURCE.md#scaj-30007-traditional-chinese) and the
+[standalone SDL2 runner](tools/cht_runner/README.md). The release badges and
+the project overview below describe upstream GT4Recomp.
 
 GT4Recomp is a static recompilation of **Gran Turismo 4 (NTSC-U, SCUS-97328)** for **Windows x86-64**. The game's own
 code is translated ahead of time into C++ and compiled to native machine code; the PS2 hardware it talks to is

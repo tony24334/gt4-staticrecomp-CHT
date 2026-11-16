@@ -1,0 +1,55 @@
+{
+  "entry_address": 1048584,
+  "native_elf_size": 6086780,
+  "native_elf_sha256": "a71f30e6b42946c82223ed12a7fb88a9494294cc38a6c83a526ba7d4e0fbb9e7",
+  "records": [
+    {
+      "core_target_address": 6352740,
+      "size_bytes": 24,
+      "inflated_payload_offset": 276,
+      "payload_sha256": "bd577eaa8fce598b2e197b5579562d458f30a446e975703e9ec720bbed4b021b",
+      "reference_program_header": {
+        "type": 1879048192,
+        "file_offset": 5308284,
+        "virtual_address": 6352764,
+        "physical_address": 6352764,
+        "file_size": 24,
+        "memory_size": 24,
+        "flags": 4,
+        "alignment": 4
+      }
+    },
+    {
+      "core_target_address": 1048576,
+      "size_bytes": 5304188,
+      "inflated_payload_offset": 308,
+      "payload_sha256": "7bbba2092a021b59db47bb88028b76429b9093a7e51087e2997c03cd42cb1814",
+      "reference_program_header": {
+        "type": 1,
+        "file_offset": 4096,
+        "virtual_address": 1048576,
+        "physical_address": 1048576,
+        "file_size": 5304188,
+        "memory_size": 5304188,
+        "flags": 7,
+        "alignment": 4096
+      }
+    },
+    {
+      "core_target_address": 6352768,
+      "size_bytes": 774396,
+      "inflated_payload_offset": 5304504,
+      "payload_sha256": "1c9b49d91a20775442b277e27ebb4c799909bd5efc9e53710ec3a12faa24bc5b",
+      "reference_program_header": {
+        "type": 1,
+        "file_offset": 5312384,
+        "virtual_address": 6352768,
+        "physical_address": 6352768,
+        "file_size": 774396,
+        "memory_size": 9163004,
+        "flags": 6,
+        "alignment": 4096
+      }
+    }
+  ]
+}

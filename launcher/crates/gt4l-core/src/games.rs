@@ -54,8 +54,20 @@ pub const SPEC2: Game = Game {
     replay_prefix: "BASCUS-97436",
 };
 
+/// Gran Turismo 4 Traditional Chinese (SCAJ-30007).
+pub const CHT: Game = Game {
+    id: "cht",
+    display_name: "Gran Turismo 4 繁體中文版",
+    serial: "SCAJ-30007",
+    executable: "gt4-cht.exe",
+    elf_name: "SCAJ_300.07",
+    logo_asset: "assets/logo-gt4.png",
+    save_folder: "BISCAJ-30007GAMEDATA",
+    replay_prefix: "BISCAJ-30007",
+};
+
 /// Every game, in display order.
-pub const GAMES: &[&Game] = &[&GT4, &SPEC2];
+pub const GAMES: &[&Game] = &[&GT4, &SPEC2, &CHT];
 
 /// The game of an id (`gt4`, `spec2`).
 pub fn by_id(id: &str) -> Option<&'static Game> {
@@ -101,7 +113,8 @@ mod tests {
 
     #[test]
     fn the_table_names_two_games_with_their_own_programs() {
-        assert_eq!(GAMES.len(), 2);
+        assert_eq!(GAMES.len(), 3);
+        assert_eq!(by_id("cht"), Some(&CHT));
         assert_eq!(by_id("gt4"), Some(&GT4));
         assert_eq!(by_id("spec2"), Some(&SPEC2));
         assert_eq!(by_id("gt5"), None);
@@ -118,7 +131,7 @@ mod tests {
 
     #[test]
     fn the_first_installed_game_is_selected_then_the_one_played_last() {
-        let both: &[&'static Game] = &[&GT4, &SPEC2];
+        let both: &[&'static Game] = &[&GT4, &SPEC2, &CHT];
         // Nothing stored yet: the first installed game.
         assert_eq!(initial_selection(None, &[&SPEC2]), &SPEC2);
         assert_eq!(initial_selection(None, both), &GT4);

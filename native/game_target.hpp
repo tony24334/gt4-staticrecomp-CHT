@@ -31,7 +31,7 @@
 
 namespace gt4::target {
 
-enum class Id { v200, spec2 };
+enum class Id { v200, spec2, cht };
 
 // A guest address that can never match a real PC (32-bit, word aligned, below 0x08000000) or a real return address.
 inline constexpr std::uint32_t kNeverMatch = 0xFFFFFFFFu;
@@ -310,14 +310,24 @@ inline constexpr HookAddresses kSpec2Hooks = {
 
 inline constexpr Profile kV200{Id::v200, "v2.00", 32u << 20, kV200Hooks};
 inline constexpr Profile kSpec2{Id::spec2, "Spec II", 32u << 20, kSpec2Hooks};
+inline constexpr Profile kCht{Id::cht, "SCAJ-30007", 32u << 20, {}};
 
-#if defined(GT4_TARGET_SPEC2) && !defined(GT4_TARGET_FIXTURE_V200)
+#if defined(GT4_TARGET_CHT) && !defined(GT4_TARGET_FIXTURE_V200)
+inline constexpr Id kActiveId = Id::cht;
+#elif defined(GT4_TARGET_SPEC2) && !defined(GT4_TARGET_FIXTURE_V200)
 inline constexpr Id kActiveId = Id::spec2;
 #else
 inline constexpr Id kActiveId = Id::v200;
 #endif
 
-constexpr const Profile &active() { return kActiveId == Id::spec2 ? kSpec2 : kV200; }
+constexpr const Profile &active() {
+  switch (kActiveId) {
+  case Id::cht: return kCht;
+  case Id::spec2: return kSpec2;
+  case Id::v200: return kV200;
+  }
+  return kV200;
+}
 
 // Guest address for a hook, or kNeverMatch when the active target does not have it. constexpr so the overlays keep
 // their compile-time comparisons.
