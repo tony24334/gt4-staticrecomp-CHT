@@ -2077,3 +2077,14 @@ active. The CoreGS 2.0 windowed check reached about 120 guest VBlanks/s at
 
 The launcher saves a CHT race video output selection (Normal, 480p or
 1080i) and the CHT game holds it during windowed play.
+
+
+### CHT indirect-call crash diagnostics (2026-11-19)
+
+Five owner-reported stops share RA 0x0038798C, including two with Normal video
+output. Invalid object/table data or callback execution state remains under
+investigation; no root cause or fix is claimed. An opt-in CHT diagnostic capsule
+now records a bounded 512-event history around the translated call and kernel
+callbacks, validates restoration, and dumps on missing code. A separate
+`GT4_CHT_VIDEO_WRITE=0` control disables the video-mode writer completely.
+See the [November 19 journal](journal/2026-11-19.md).

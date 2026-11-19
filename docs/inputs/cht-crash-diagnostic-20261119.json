@@ -1,0 +1,28 @@
+{
+  "profile": "local-cht-crash-trace-v1",
+  "date": "2026-11-19",
+  "build_type": "Release, no PGO",
+  "compiler": "Zig bundled Clang 20.1.2",
+  "files": {
+    "game\\gt4-cht-trace.exe": {
+      "sha256": "efd1cbaf04c420ee826896e3701fc7bf8c2d1733edca4e883d172fdec6bce1d2",
+      "size": 83825152
+    },
+    "ps2game-trace.a": {
+      "sha256": "7e1d508588a3d584af3491e893cba05b2b8a9d22a8584de2fb708a6c512b8731",
+      "size": 65748338
+    },
+    "capsule\\runtime.json": {
+      "sha256": "3a71aa92e08e69a4f3eb4e71842e3710af6bbc88604c7f5bebd40551fb10ddb0",
+      "size": 751
+    }
+  },
+  "original_library_sha256": "2bb6bf31aa60eebf893d3e281eeba29a4d53ed813b35ec1fb3822e282ca34d95",
+  "validation": {
+    "native_fixtures": 3,
+    "python_tests": 2,
+    "windowed_smoke_frames_per_mode": 180,
+    "synthetic_missing_code_trace": true
+  },
+  "status": "diagnostic only; owner gameplay reproduction pending"
+}

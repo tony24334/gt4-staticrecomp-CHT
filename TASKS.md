@@ -3442,3 +3442,10 @@ Release build integrates the upstream VU1 AOT path for the verified CHT image.
 Scripted S-1 measurements and validation are recorded in the
 [status report](docs/STATUS.md#local-scaj-30007-port).
 Race gameplay, save parity, and interactive pacing and audio remain unverified.
+
+
+TASK-174 diagnostic follow-up (2026-11-19): owner gameplay found five indirect
+call stops at RA 0x0038798C, also reproducible in Normal video mode. Added an
+opt-in diagnostic capsule and fully disabled video-writer A/B control; root cause
+and game reproduction on the diagnostic candidate remain pending. See the
+[November 19 journal](docs/journal/2026-11-19.md).

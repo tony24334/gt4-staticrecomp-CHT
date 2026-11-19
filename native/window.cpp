@@ -968,6 +968,13 @@ int run_window(const std::function<int()> &emulate) {
         std::fprintf(stderr, "[display] CHT race video output held at %s\n", output);
       }
     }
+    if (gt4::target::active().id == gt4::target::Id::cht) {
+      const char *video_write = std::getenv("GT4_CHT_VIDEO_WRITE");
+      if (video_write && std::strcmp(video_write, "0") == 0) {
+        cht_video_output.reset();
+        std::fprintf(stderr, "[display] CHT video output writes disabled (GT4_CHT_VIDEO_WRITE=0)\n");
+      }
+    }
     force_480p_enabled = gt4::target::active().id != gt4::target::Id::cht &&
                         gt4::display::parse_force_480p(std::getenv("GT4_FORCE_480P"));
     force_480p_state = {};
