@@ -314,6 +314,15 @@ inline constexpr Profile kSpec2{Id::spec2, "Spec II", 32u << 20, kSpec2Hooks};
 // units. Only the license guard is qualified here; unrelated hooks stay absent.
 inline constexpr HookAddresses kChtHooks = [] {
   HookAddresses hooks;
+  // SCAJ-30007 option chain (journal 2026-11-16): the global publishes the
+  // option owner; the race mode lives at owner + 0x38CB0 + 0x16C8.
+  // This is the already runtime-tested CHT video-mode path, not a v2.00 copy.
+  hooks.widescreen_owner_pointer = 0x0061A42Cu;
+  hooks.widescreen_option_offset = 0x38CB0u;
+  hooks.race_display_index_offset = 0x16C8u;
+  hooks.race_display_index_normal = 0u;
+  hooks.race_display_index_480p = 1u;
+  hooks.race_display_index_1080i = 2u;
   hooks.license_load_demo_inputs = 0x003E3B40u;
   hooks.license_loader_entry = 0x0010F7C0u;
   hooks.license_loader_return = 0x0010F8D4u;
