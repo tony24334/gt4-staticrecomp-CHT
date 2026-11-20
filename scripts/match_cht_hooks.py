@@ -25,6 +25,12 @@ FUNCTIONS = {
     "frame_update": (0x00100EE0, 0x90),
     "frame_render": (0x00100F50, 0x90),
     "frame_idle": (0x00100FC0, 0x90),
+    "race_ps2_update": (0x0033C470, 0x80),
+    "race_ps2_update_play": (0x0033C4F0, 0x180),
+    "widescreen_setter": (0x00437110, 0x40),
+    "widescreen_preset_copy": (0x00439108, 0xC0),
+    "widescreen_preset_init": (0x00439B30, 0x1C0),
+    "flare_flush": (0x003B88C8, 0x120),
 }
 
 

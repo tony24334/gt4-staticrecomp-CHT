@@ -311,7 +311,8 @@ inline constexpr HookAddresses kSpec2Hooks = {
 inline constexpr Profile kV200{Id::v200, "v2.00", 32u << 20, kV200Hooks};
 inline constexpr Profile kSpec2{Id::spec2, "Spec II", 32u << 20, kSpec2Hooks};
 // TASK-174: SCAJ-30007 mappings verified in the reconstructed ELF and translated
-// units. Only the license guard is qualified here; unrelated hooks stay absent.
+// units. Code hooks were matched by normalized MIPS instructions; data fields were
+// then confirmed from the matched functions' loads/stores and class-table entries.
 inline constexpr HookAddresses kChtHooks = [] {
   HookAddresses hooks;
   // SCAJ-30007 option chain (journal 2026-11-16): the global publishes the
@@ -319,6 +320,18 @@ inline constexpr HookAddresses kChtHooks = [] {
   // This is the already runtime-tested CHT video-mode path, not a v2.00 copy.
   hooks.widescreen_owner_pointer = 0x0061A42Cu;
   hooks.widescreen_option_offset = 0x38CB0u;
+  hooks.widescreen_flag_offset = 0x14u;
+  hooks.widescreen_record_offset = 0x24u;
+  hooks.widescreen_record_bytes = 44u;
+  hooks.widescreen_record_width_offset = 0xCu;
+  hooks.widescreen_record_height_offset = 0x10u;
+  hooks.video_system_offset = 0x13A0u;
+  hooks.video_system_ntsc = 1u;
+  hooks.widescreen_global = 0x0060F9F0u;
+  hooks.widescreen_preset_4_3 = 0x0061A370u;
+  hooks.widescreen_preset_wide = 0x0061A3A0u;
+  hooks.widescreen_preset_4_3_ntsc = 0x0061A3D0u;
+  hooks.widescreen_preset_wide_ntsc = 0x0061A400u;
   hooks.race_display_index_offset = 0x16C8u;
   hooks.race_display_index_normal = 0u;
   hooks.race_display_index_480p = 1u;
@@ -337,6 +350,19 @@ inline constexpr HookAddresses kChtHooks = [] {
   hooks.license_crc_table = 0x0064C398u;
   hooks.license_manager_add = 0x1AA4u;
   hooks.license_body_shift = 0u;
+  hooks.frame_update_functor = 0x00100EE0u;
+  hooks.frame_render_functor = 0x00100F50u;
+  hooks.frame_idle_functor = 0x00100FC0u;
+  hooks.frame_display_page = 0x0060FA84u;
+  hooks.frame_display_page_second = 0x0060FB00u;
+  hooks.frame_race_vtable_first = 0x0066D000u;
+  hooks.frame_race_vtable_last = 0x0067C000u;
+  hooks.frame_race_dynamics_offset = 0x70u;
+  hooks.frame_dynamics_clock_offset = 0xF898u;
+  hooks.frame_dynamics_bytes = 0x10000u;
+  hooks.frame_race_flare_offset = 0xDA0u;
+  hooks.frame_flare_track_count_offset = 0x1848u;
+  hooks.frame_flare_car_count_offset = 0xA34u;
   hooks.frame_render_world = 0x003386E0u;
   hooks.camera_yaw_call_return = 0x0033FDB8u;
   hooks.camera_pad_stick_x = 0x008670DEu;

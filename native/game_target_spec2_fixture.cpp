@@ -4,6 +4,7 @@
 // binary can check both tables without a second build. S8 filled the table: the values below are the Spec II guest
 // addresses found in the derived ELF and confirmed against a runtime RAM dump (docs/SPEC2-PLAN.md, S8). The hook
 // write rules run in their own target (native/spec2_hooks_fixture.cpp) with the Spec II table.
+#undef GT4_TARGET_CHT
 #define GT4_TARGET_SPEC2 1
 #include "game_target.hpp"
 

@@ -2,6 +2,8 @@
 #include "race_display.hpp"
 #include "race_widescreen.hpp"
 #include "display_aspect.hpp"
+#include "flare_limits.hpp"
+#include "fov_adjust.hpp"
 #include "ps2/memory.hpp"
 #include "gpu.hpp"
 #include "gs/gs.hpp"
@@ -689,6 +691,14 @@ void on_vblank() {
   if (!pump_messages())
     return;
   update_cursor();
+#ifdef GT4_DIRECT_VBLANK_HOOKS
+  // Standalone CHT uses the donor system.cpp, not the MTVU runtime capsule
+  // which normally owns these per-guest-VBlank hooks.
+  gt4::display::widescreen_hold_at_guest_vblank(ps2::g_ram, ps2::kRamSize);
+  gt4::display_aspect::at_guest_vblank(ps2::g_ram, ps2::kRamSize);
+  gt4::flare_limits::at_guest_vblank(ps2::g_ram, ps2::kRamSize);
+  gt4::fov_adjust::at_guest_vblank(ps2::g_ram, ps2::kRamSize);
+#endif
   if (cht_video_output &&
       gt4::display::hold_cht_video_output(ps2::g_ram, ps2::kRamSize, *cht_video_output) &&
       !cht_video_output_written) {
@@ -746,6 +756,28 @@ void on_vblank() {
 }
 } // namespace
 
+#ifdef GT4_DIRECT_VBLANK_HOOKS
+namespace {
+// The headless runner does not enter run_window(), so it needs the CHT video
+// selection as part of the same direct guest-VBlank path as the other holds.
+void direct_headless_vblank_hooks() {
+  gt4::display::widescreen_hold_at_guest_vblank(ps2::g_ram, ps2::kRamSize);
+  gt4::display_aspect::at_guest_vblank(ps2::g_ram, ps2::kRamSize);
+  gt4::flare_limits::at_guest_vblank(ps2::g_ram, ps2::kRamSize);
+  gt4::fov_adjust::at_guest_vblank(ps2::g_ram, ps2::kRamSize);
+  static const std::optional<gt4::display::RaceVideoOutput> output = [] {
+    const char *value = std::getenv("GT4_CHT_VIDEO_OUTPUT");
+    const char *writes = std::getenv("GT4_CHT_VIDEO_WRITE");
+    if (value == nullptr || (writes != nullptr && std::strcmp(writes, "0") == 0))
+      return std::optional<gt4::display::RaceVideoOutput>{};
+    return std::optional{gt4::display::parse_cht_video_output(value)};
+  }();
+  if (output)
+    gt4::display::hold_cht_video_output(ps2::g_ram, ps2::kRamSize, *output);
+}
+} // namespace
+#endif
+
 // IN-520: the recording and replay files; false stops the start, since a bench must not run with half its input.
 bool open_input_files() {
   const char *record = std::getenv("GT4_INPUT_RECORD");
@@ -781,14 +813,27 @@ bool install_input_replay_without_window() {
     if (gt4::frame_skip::g_enabled) {
       ps2::g_options.on_vblank = [] {
         ++input_vblank;
+#ifdef GT4_DIRECT_VBLANK_HOOKS
+        direct_headless_vblank_hooks();
+#endif
         note_frame_skip_vblank();
       };
+#ifdef GT4_DIRECT_VBLANK_HOOKS
+    } else {
+      ps2::g_options.on_vblank = [] {
+        ++input_vblank;
+        direct_headless_vblank_hooks();
+      };
+#endif
     }
     return true;
   }
   if (!open_input_files()) return false;
   ps2::g_options.on_vblank = [] {
     apply_pad(input_player->at(++input_vblank));
+#ifdef GT4_DIRECT_VBLANK_HOOKS
+    direct_headless_vblank_hooks();
+#endif
     note_frame_skip_vblank();
   };
   return true;

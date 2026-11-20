@@ -444,7 +444,7 @@ target_compile_options(standalone_fixture PRIVATE "${GT4_WARNINGS}")
 target_link_libraries(standalone_fixture PRIVATE gt4_pad_mapping)  # TASK-148: parse_pad_choice for game.ini `pad`
 target_compile_definitions(standalone_fixture PRIVATE GT4_STANDALONE_SAMPLE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/standalone_samples")
 add_test(NAME native_standalone COMMAND $<TARGET_FILE:standalone_fixture>)
-add_executable(game_target_fixture game_target_fixture.cpp game_target_spec2_fixture.cpp)
+add_executable(game_target_fixture game_target_fixture.cpp game_target_spec2_fixture.cpp game_target_cht_fixture.cpp)
 target_compile_options(game_target_fixture PRIVATE "${GT4_WARNINGS}")
 add_test(NAME native_game_target COMMAND $<TARGET_FILE:game_target_fixture>)
 # TASK-100 S7b: the Spec II IOP reboot image rule (native/spec2_iop.hpp) on the reboot paths the game uses.
@@ -456,6 +456,11 @@ add_executable(spec2_hooks_fixture spec2_hooks_fixture.cpp race_widescreen.cpp r
 target_compile_definitions(spec2_hooks_fixture PRIVATE GT4_TARGET_SPEC2)
 target_compile_options(spec2_hooks_fixture PRIVATE "${GT4_WARNINGS}")
 add_test(NAME native_spec2_hooks COMMAND $<TARGET_FILE:spec2_hooks_fixture>)
+# TASK-174: the equivalent SCAJ-30007 table and write rules.
+add_executable(cht_hooks_fixture cht_hooks_fixture.cpp race_widescreen.cpp race_display.cpp)
+target_compile_definitions(cht_hooks_fixture PRIVATE GT4_TARGET_CHT)
+target_compile_options(cht_hooks_fixture PRIVATE "${GT4_WARNINGS}")
+add_test(NAME native_cht_hooks COMMAND $<TARGET_FILE:cht_hooks_fixture>)
 add_library(gt4_perf_probe STATIC perf_probe.cpp perf_clock.cpp)
 # TASK-011 step 0 counters (linked into the runtime only with the slice169 capsule).
 add_library(gt4_mtvu_measure STATIC mtvu_measure.cpp)
@@ -497,6 +502,12 @@ target_link_libraries(gt4_gs_stream_client PUBLIC gt4_gs_stream gt4_perf_probe g
 target_include_directories(gt4_gs_stream_client PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(gt4_gs_stream_client PRIVATE _CRT_SECURE_NO_WARNINGS)
 target_compile_options(gt4_gs_stream_client PRIVATE "${GT4_WARNINGS}")
+if(WIN32)
+    # gs_stream_client.cpp hashes the helper executable through BCrypt. MSVC's
+    # pragma supplies this implicitly, but the CHT Zig/lld build needs it in
+    # the target's transitive link interface (including the fixture).
+    target_link_libraries(gt4_gs_stream_client PUBLIC bcrypt)
+endif()
 # TASK-038: users of the client (window.cpp through ps2runtime_vulkan) see GT4_GS_STREAM_CLIENT.
 target_compile_definitions(gt4_gs_stream_client INTERFACE GT4_GS_STREAM_CLIENT)
 # TASK-027 (CoreGS 2.0, development branch only): GT4_HW_GS=ON builds the HWR libraries, tools and tests (native/hw_gs)
@@ -965,12 +976,29 @@ if(GT4_CHT_LICENSE_GUARD_SOURCE)
     file(SHA256 "${DONOR}/runtime/src/dispatch.cpp" cht_guard_actual_donor)
     file(SHA256 "${GT4_ROOT}/scripts/license_guard_overlay.inc" cht_guard_actual_overlay)
     file(SHA256 "${cht_guard_dir}/dispatch.cpp" cht_guard_actual)
-    if(NOT cht_guard_profile STREQUAL "cht-license-guard-v1" OR
+    if(NOT (cht_guard_profile STREQUAL "cht-license-guard-v1" OR
+            cht_guard_profile STREQUAL "cht-license-guard+display-aspect-v1" OR
+            cht_guard_profile STREQUAL "cht-license-guard+display-aspect+frame-skip-v1") OR
        NOT cht_guard_donor STREQUAL "691c1d045b928ef789338f0954ec820fc0fd4e938cd2b2940743b3ad6005f995" OR
        NOT cht_guard_donor STREQUAL cht_guard_actual_donor OR
        NOT cht_guard_overlay STREQUAL cht_guard_actual_overlay OR
        NOT cht_guard_expected STREQUAL cht_guard_actual)
         message(FATAL_ERROR "CHT license guard capsule differs from its verified inputs or receipt")
+    endif()
+    if(cht_guard_profile STREQUAL "cht-license-guard+display-aspect-v1" OR
+       cht_guard_profile STREQUAL "cht-license-guard+display-aspect+frame-skip-v1")
+        string(JSON cht_aspect_overlay GET "${cht_guard_receipt}" display_aspect_overlay_sha256)
+        file(SHA256 "${GT4_ROOT}/scripts/display_aspect_overlay.inc" cht_aspect_overlay_actual)
+        if(NOT cht_aspect_overlay STREQUAL cht_aspect_overlay_actual)
+            message(FATAL_ERROR "CHT display-aspect dispatch capsule overlay hash mismatch")
+        endif()
+    endif()
+    if(cht_guard_profile STREQUAL "cht-license-guard+display-aspect+frame-skip-v1")
+        string(JSON cht_frame_skip_overlay GET "${cht_guard_receipt}" frame_skip_overlay_sha256)
+        file(SHA256 "${GT4_ROOT}/scripts/frame_skip_overlay.inc" cht_frame_skip_overlay_actual)
+        if(NOT cht_frame_skip_overlay STREQUAL cht_frame_skip_overlay_actual)
+            message(FATAL_ERROR "CHT frame-skip dispatch capsule overlay hash mismatch")
+        endif()
     endif()
     if((GT4_CHT_CRASH_TRACE_SOURCE AND NOT cht_guard_diagnostic) OR
        (NOT GT4_CHT_CRASH_TRACE_SOURCE AND cht_guard_diagnostic))
@@ -982,7 +1010,9 @@ if(GT4_CHT_LICENSE_GUARD_SOURCE)
     target_link_libraries(ps2runtime_vulkan PUBLIC gt4_license_guard)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
         "${cht_guard_dir}/dispatch.cpp" "${cht_guard_dir}/runtime.json"
-        "${GT4_ROOT}/scripts/license_guard_overlay.inc")
+        "${GT4_ROOT}/scripts/license_guard_overlay.inc"
+        "${GT4_ROOT}/scripts/display_aspect_overlay.inc"
+        "${GT4_ROOT}/scripts/frame_skip_overlay.inc")
 endif()
 if(GT4_TARGET STREQUAL "cht")
     add_executable(cht_license_guard_fixture license_guard_fixture.cpp)
@@ -1104,6 +1134,9 @@ endif()
 # after the standalone rules of standalone.cpp built the command line and environment the launcher would have passed.
 set_source_files_properties("${PORT}/main.cpp" PROPERTIES COMPILE_DEFINITIONS "main=gt4_donor_main")
 add_executable(gt4vulkan "${PORT}/main.cpp" game_main.cpp standalone.cpp window.cpp ${GT4VULKAN_RESOURCES})
+if(GT4_TARGET STREQUAL "cht" AND NOT GT4_PERF_RUNTIME_SOURCE)
+    target_compile_definitions(gt4vulkan PRIVATE GT4_DIRECT_VBLANK_HOOKS)
+endif()
 # TASK-159: the host side of the call that scripts/camera360_units.py adds to the translated chase camera. An EE library built
 # from those units needs it; one built from the plain units leaves it unused.
 target_sources(gt4vulkan PRIVATE camera_360_hook.cpp fov_adjust_hook.cpp)
