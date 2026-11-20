@@ -323,12 +323,12 @@ inline constexpr HookAddresses kChtHooks = [] {
   hooks.race_display_index_normal = 0u;
   hooks.race_display_index_480p = 1u;
   hooks.race_display_index_1080i = 2u;
-  // These entry labels are present in the CHT translated image (unit_00A7 and
-  // unit_008F); the host hooks only observe dispatch/state and do not patch
-  // guest instructions.
-  hooks.race_display_render = 0x0039F498u;
+  hooks.init_monitor = 0x00382840u;
+  hooks.camera_call_return = 0x003828F8u;
+  hooks.race_display_render = 0x003989F0u;
+  hooks.hud_parameter_block = 0x00007F00u;
+  hooks.hud_parameter_words = 2u;
   hooks.hud_matrix_offset = 0x70u;
-  hooks.frame_render_world = 0x0033DEA8u;
   hooks.license_load_demo_inputs = 0x003E3B40u;
   hooks.license_loader_entry = 0x0010F7C0u;
   hooks.license_loader_return = 0x0010F8D4u;
@@ -337,6 +337,18 @@ inline constexpr HookAddresses kChtHooks = [] {
   hooks.license_crc_table = 0x0064C398u;
   hooks.license_manager_add = 0x1AA4u;
   hooks.license_body_shift = 0u;
+  hooks.frame_render_world = 0x003386E0u;
+  hooks.camera_yaw_call_return = 0x0033FDB8u;
+  hooks.camera_pad_stick_x = 0x008670DEu;
+  hooks.camera_analog_loop_return = 0x00434634u;
+  hooks.camera_analog_channel_table = 0x0069C810u;
+  hooks.camera_analog_slot_bias = 0u;
+  hooks.fov_projection_call_return = 0x003744F4u;
+  hooks.fov_pad_buttons = 0x008670DCu;
+  hooks.menu_ortho_call_return = 0x00211650u;
+  hooks.overlay_ortho_call_return = 0x003E4F08u;
+  hooks.overlay_draw_end_return = 0x003E4F50u;
+  hooks.overlay_caller_slot = 0x60u;
   return hooks;
 }();
 inline constexpr Profile kCht{Id::cht, "SCAJ-30007", 32u << 20, kChtHooks};

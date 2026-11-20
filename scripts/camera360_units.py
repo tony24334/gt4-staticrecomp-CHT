@@ -264,6 +264,35 @@ TARGETS = {
             CallSite(OVERLAY_HOOK, 0x0036D4D0, 0x0036D4D8, 0x005A2600,
                      call_line(0x0036D4D8, 'c.f[16] = c.f[12];', 'unit_0128', 135, 0x005A2600)),)),
     ),
+    'cht': (
+        Unit('unit_008F.cpp', '86d9956102fe1bdf694995ecbfaa39a4ea45772ef81bb59fa80b9abf0f5b8d2f', (
+            CallSite(YAW_HOOK, 0x0033FDB0, 0x0033FDB8, 0x00367038,
+                     call_line(0x0033FDB8, 'c.f[13] = ld32((c.r[16].w[0]));', 'unit_0099', 142, 0x00367038)),)),
+        Unit('unit_009D.cpp', '0d5b240bd2204043794d157eecaa69911104bb9484fff2b0f199726c041d5e8e', (
+            CallSite(PROJECTION_HOOK, 0x003744EC, 0x003744F4, 0x00373248,
+                     call_line(0x003744F4, 'c.f[13] = c.f[12];', 'unit_009C', 319, 0x00373248)),)),
+        Unit('unit_00CD.cpp', '8eb5ac271ee0ce36a3241e61a6b1c6802a71d3842628ff431784cfedababe272', (
+            CallSite(CHANNEL_HOOK, 0x0043462C, 0x00434634, 0x00430F88,
+                     call_line(0x00434634, 'set32(c.r[5], 0u + 2u);', 'unit_00CC', 107, 0x00430F88)),
+            doubling_site(0x004346B0, 'L_004346A8'), divide_site(0x004346EC, 'L_004346E4', 7),
+            doubling_site(0x00434710, 'L_00434708'), divide_site(0x0043474C, 'L_00434744', 7),
+        )),
+        Unit('unit_0044.cpp', '0bd0374c7a4323b53a81feccf7a75f4fe738bf3a55afe714a2a6f80a41fdcff4', (
+            CallSite(OVERLAY_HOOK, 0x00211648, 0x00211650, 0x0049DA90,
+                     call_line(0x00211650, 'c.f[16] = c.f[12];', 'unit_00E7', 92, 0x0049DA90)),)),
+        Unit('unit_00B9.cpp', '1c6c5fdac06500514d20cbc286b540028d8db0b333b62c42c5d1e2338785ff06', (
+            CallSite(OVERLAY_HOOK, 0x003E4F00, 0x003E4F08, 0x0049DA90,
+                     call_line(0x003E4F08, 'c.f[17] = c.f[21];', 'unit_00E7', 92, 0x0049DA90)),
+            CallSite(OVERLAY_END_HOOK, 0x003E4F48, 0x003E4F50, 0x0049D400,
+                     call_line(0x003E4F50, '', 'unit_00E7', 78, 0x0049D400)),
+        )),
+        Unit('unit_00E2.cpp', '7f779e1e30875e5c192a24f1cd8b744759974aa138ef9e39ae91aedd36c275b2', (
+            text_scale_site(0x00488500, 'L_004884C8', 36, 0, 'x'),
+            text_scale_site(0x00488504, 'L_004884C8', 40, 0, 'y'),
+            text_scale_site(0x004885C4, 'L_004885AC', 40, 1, 'y'),
+            text_scale_site(0x004885C8, 'L_004885AC', 36, 0, 'x'),
+        )),
+    ),
 }
 
 
