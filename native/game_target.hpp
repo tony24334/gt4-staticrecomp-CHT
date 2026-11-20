@@ -323,6 +323,12 @@ inline constexpr HookAddresses kChtHooks = [] {
   hooks.race_display_index_normal = 0u;
   hooks.race_display_index_480p = 1u;
   hooks.race_display_index_1080i = 2u;
+  // These entry labels are present in the CHT translated image (unit_00A7 and
+  // unit_008F); the host hooks only observe dispatch/state and do not patch
+  // guest instructions.
+  hooks.race_display_render = 0x0039F498u;
+  hooks.hud_matrix_offset = 0x70u;
+  hooks.frame_render_world = 0x0033DEA8u;
   hooks.license_load_demo_inputs = 0x003E3B40u;
   hooks.license_loader_entry = 0x0010F7C0u;
   hooks.license_loader_return = 0x0010F8D4u;
