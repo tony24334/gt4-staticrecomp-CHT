@@ -88,8 +88,21 @@ int main() {
     check(!game_crc_ok(sane.data(), 0, 0u), "empty body: CRC fail");
 
     // Both license demo loaders are guarded call sites (v2); any other return address is not.
-    check(loader_for_return(kLoaderReturn) == 0x001100D0u, "first loader call site");
-    check(loader_for_return(kReplayLoaderReturn) == 0x00110230u, "second loader call site (owner B5 path)");
+    if constexpr (gt4::target::active().id == gt4::target::Id::cht) {
+        check(kLoaderReturn == 0x0010F8D4u && loader_for_return(kLoaderReturn) == 0x0010F7C0u,
+              "CHT first loader call site");
+        check(kReplayLoaderReturn == 0x0010FA34u && loader_for_return(kReplayLoaderReturn) == 0x0010F920u,
+              "CHT second loader call site");
+        check(kCrcTableAddress == 0x0064C398u && kManagerAdd == 0x1AA4u && kBodyShift == 0u,
+              "CHT verified CRC and stream mapping");
+        check(loader_for_return(0x001101E4u) == 0u && loader_for_return(0x00110344u) == 0u,
+              "CHT never uses US loader addresses");
+        check(manager_address(0x00100040u) == 0x00101AE4u && body_pointer_matches(0x100040u, 0x100040u),
+              "CHT writes exactly the virtual's Manager stream");
+    } else {
+        check(loader_for_return(kLoaderReturn) == 0x001100D0u, "first loader call site");
+        check(loader_for_return(kReplayLoaderReturn) == 0x00110230u, "second loader call site (owner B5 path)");
+    }
     check(loader_for_return(0x00110350u) == 0u && loader_for_return(0u) == 0u, "other call sites are not guarded");
 
     check(guarded_count() == 0u, "counter starts at 0");

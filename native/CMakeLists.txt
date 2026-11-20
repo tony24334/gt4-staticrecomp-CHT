@@ -948,6 +948,48 @@ if(GT4_CHT_CRASH_TRACE_SOURCE)
     add_test(NAME native_cht_crash_trace COMMAND cht_crash_trace_fixture)
 endif()
 
+# TASK-174: reuse the existing TASK-017 rule with independently verified CHT
+# addresses. Apply after optional crash tracing so both dispatch hooks compose.
+set(GT4_CHT_LICENSE_GUARD_SOURCE "" CACHE PATH "Prepared CHT license demo guard capsule")
+if(GT4_CHT_LICENSE_GUARD_SOURCE)
+    if(NOT GT4_TARGET STREQUAL "cht" OR GT4_PERF_RUNTIME_SOURCE OR GT4_LICENSE_GUARD_SOURCE OR GT4_SHAPE_RUNTIME_SOURCE)
+        message(FATAL_ERROR "CHT license guard requires the CHT base runtime")
+    endif()
+    get_filename_component(cht_guard_dir "${GT4_CHT_LICENSE_GUARD_SOURCE}" ABSOLUTE)
+    file(READ "${cht_guard_dir}/runtime.json" cht_guard_receipt)
+    string(JSON cht_guard_profile GET "${cht_guard_receipt}" profile)
+    string(JSON cht_guard_diagnostic GET "${cht_guard_receipt}" diagnostic)
+    string(JSON cht_guard_donor GET "${cht_guard_receipt}" donor_dispatch_sha256)
+    string(JSON cht_guard_overlay GET "${cht_guard_receipt}" guard_overlay_sha256)
+    string(JSON cht_guard_expected GET "${cht_guard_receipt}" dispatch_sha256)
+    file(SHA256 "${DONOR}/runtime/src/dispatch.cpp" cht_guard_actual_donor)
+    file(SHA256 "${GT4_ROOT}/scripts/license_guard_overlay.inc" cht_guard_actual_overlay)
+    file(SHA256 "${cht_guard_dir}/dispatch.cpp" cht_guard_actual)
+    if(NOT cht_guard_profile STREQUAL "cht-license-guard-v1" OR
+       NOT cht_guard_donor STREQUAL "691c1d045b928ef789338f0954ec820fc0fd4e938cd2b2940743b3ad6005f995" OR
+       NOT cht_guard_donor STREQUAL cht_guard_actual_donor OR
+       NOT cht_guard_overlay STREQUAL cht_guard_actual_overlay OR
+       NOT cht_guard_expected STREQUAL cht_guard_actual)
+        message(FATAL_ERROR "CHT license guard capsule differs from its verified inputs or receipt")
+    endif()
+    if((GT4_CHT_CRASH_TRACE_SOURCE AND NOT cht_guard_diagnostic) OR
+       (NOT GT4_CHT_CRASH_TRACE_SOURCE AND cht_guard_diagnostic))
+        message(FATAL_ERROR "CHT guard diagnostic profile must match GT4_CHT_CRASH_TRACE_SOURCE")
+    endif()
+    get_property(cht_guard_sources TARGET ps2runtime_vulkan PROPERTY SOURCES)
+    list(FILTER cht_guard_sources EXCLUDE REGEX "/dispatch[.]cpp$")
+    set_property(TARGET ps2runtime_vulkan PROPERTY SOURCES "${cht_guard_sources};${cht_guard_dir}/dispatch.cpp")
+    target_link_libraries(ps2runtime_vulkan PUBLIC gt4_license_guard)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${cht_guard_dir}/dispatch.cpp" "${cht_guard_dir}/runtime.json"
+        "${GT4_ROOT}/scripts/license_guard_overlay.inc")
+endif()
+if(GT4_TARGET STREQUAL "cht")
+    add_executable(cht_license_guard_fixture license_guard_fixture.cpp)
+    target_link_libraries(cht_license_guard_fixture PRIVATE gt4_license_guard)
+    add_test(NAME native_cht_license_guard COMMAND $<TARGET_FILE:cht_license_guard_fixture>)
+endif()
+
 target_include_directories(ps2runtime_vulkan PUBLIC "${DONOR}/runtime/include" "${DONOR}/runtime/src"
                            "${DONOR}/runtime/src/gs" "${CMAKE_CURRENT_SOURCE_DIR}" "${VULKAN_HEADERS}")
 # TASK-081: a release (distribution) build embeds no build-machine path. The build-time shader fallback is empty, so

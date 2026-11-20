@@ -310,7 +310,21 @@ inline constexpr HookAddresses kSpec2Hooks = {
 
 inline constexpr Profile kV200{Id::v200, "v2.00", 32u << 20, kV200Hooks};
 inline constexpr Profile kSpec2{Id::spec2, "Spec II", 32u << 20, kSpec2Hooks};
-inline constexpr Profile kCht{Id::cht, "SCAJ-30007", 32u << 20, {}};
+// TASK-174: SCAJ-30007 mappings verified in the reconstructed ELF and translated
+// units. Only the license guard is qualified here; unrelated hooks stay absent.
+inline constexpr HookAddresses kChtHooks = [] {
+  HookAddresses hooks;
+  hooks.license_load_demo_inputs = 0x003E3B40u;
+  hooks.license_loader_entry = 0x0010F7C0u;
+  hooks.license_loader_return = 0x0010F8D4u;
+  hooks.license_replay_loader_entry = 0x0010F920u;
+  hooks.license_replay_loader_return = 0x0010FA34u;
+  hooks.license_crc_table = 0x0064C398u;
+  hooks.license_manager_add = 0x1AA4u;
+  hooks.license_body_shift = 0u;
+  return hooks;
+}();
+inline constexpr Profile kCht{Id::cht, "SCAJ-30007", 32u << 20, kChtHooks};
 
 #if defined(GT4_TARGET_CHT) && !defined(GT4_TARGET_FIXTURE_V200)
 inline constexpr Id kActiveId = Id::cht;
