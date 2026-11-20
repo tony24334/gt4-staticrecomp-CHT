@@ -22,6 +22,9 @@ FUNCTIONS = {
     "render_world": (0x0033DEA8, 0x240),
     "text_style": (0x00490290, 0x130),
     "pad_setup": (0x00551810, 0x200),
+    "frame_update": (0x00100EE0, 0x90),
+    "frame_render": (0x00100F50, 0x90),
+    "frame_idle": (0x00100FC0, 0x90),
 }
 
 
